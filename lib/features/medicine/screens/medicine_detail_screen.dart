@@ -38,6 +38,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                 InfoTile(label: 'Ham luong', value: medicine.strength, icon: Icons.medication_outlined),
                 InfoTile(label: 'Dang bao che', value: medicine.dosageForm, icon: Icons.category_outlined),
                 InfoTile(label: 'Nha san xuat', value: medicine.manufacturer, icon: Icons.factory_outlined),
+                InfoTile(label: 'Đơn giá bán', value: '${medicine.salePrice.toStringAsFixed(0)} VND', icon: Icons.sell_outlined),
                 InfoTile(label: 'Ton kho', value: '${medicine.totalQuantity}', icon: Icons.inventory_outlined),
                 InfoTile(label: 'Han gan nhat', value: AppDateUtils.formatDate(medicine.nearestExpiryDate), icon: Icons.event_outlined),
                 InfoTile(label: 'Can don', value: medicine.requiresPrescription ? 'Co' : 'Khong', icon: Icons.assignment_outlined),

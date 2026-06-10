@@ -137,7 +137,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 }
 
-class _UsersTab extends StatelessWidget {
+class _UsersTab extends StatefulWidget {
   const _UsersTab({
     required this.future,
     required this.onRetry,
@@ -155,73 +155,124 @@ class _UsersTab extends StatelessWidget {
   final ValueChanged<AdminUser> onToggle;
 
   @override
+  State<_UsersTab> createState() => _UsersTabState();
+}
+
+class _UsersTabState extends State<_UsersTab> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AdminUser>>(
-      future: future,
+      future: widget.future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           final error = snapshot.error;
-          return AppError(message: error is ApiException ? error.message : 'Chi admin moi duoc truy cap quan tri.', onRetry: onRetry);
+          return AppError(message: error is ApiException ? error.message : 'Chỉ admin mới được truy cập quản trị.', onRetry: widget.onRetry);
         }
         final users = snapshot.data ?? [];
-        final staffUsers = users.where((user) => user.roles.contains('Staff')).toList();
-        final activeStaffCount = staffUsers.where((user) => user.isActive).length;
+        final staffUsers = users.where((user) {
+          if (!user.roles.contains('Staff')) {
+            return false;
+          }
+          final normalizedQuery = _query.trim().toLowerCase();
+          if (normalizedQuery.isEmpty) {
+            return true;
+          }
+          return user.fullName.toLowerCase().contains(normalizedQuery)
+              || user.username.toLowerCase().contains(normalizedQuery);
+        }).toList();
+        final totalStaffCount = users.where((user) => user.roles.contains('Staff')).length;
+        final allStaffUsers = users.where((user) => user.roles.contains('Staff')).toList();
+        final activeStaffCount = allStaffUsers.where((user) => user.isActive).length;
         return Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.groups_outlined),
-                        title: Text('${staffUsers.length}'),
-                        subtitle: Text('Nhan vien ($activeStaffCount dang hoat dong)'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.groups_outlined),
+                            title: Text('$totalStaffCount'),
+                            subtitle: Text('Nhân viên ($activeStaffCount đang hoạt động)'),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      FilledButton.icon(onPressed: widget.onCreate, icon: const Icon(Icons.person_add_alt), label: const Text('Tạo nhân viên')),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(onPressed: onCreate, icon: const Icon(Icons.person_add_alt), label: const Text('Tao nhan vien')),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Tìm theo họ tên hoặc tên đăng nhập',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Xóa tìm kiếm',
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                    ),
+                    onChanged: (value) => setState(() => _query = value),
+                  ),
                 ],
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                itemCount: staffUsers.length,
-                itemBuilder: (context, index) {
-                  final user = staffUsers[index];
-                  return Card(
-                    child: ListTile(
-                      leading: Switch(
-                        value: user.isActive,
-                        onChanged: (_) => onToggle(user),
-                      ),
-                      title: Text(user.fullName),
-                      subtitle: Text('${user.username} - ${user.isActive ? 'Dang hoat dong' : 'Da khoa'}'),
-                      trailing: Wrap(
-                        spacing: 4,
-                        children: [
-                          IconButton(
-                            tooltip: 'Sua',
-                            onPressed: () => onEdit(user),
-                            icon: const Icon(Icons.edit_outlined),
+              child: staffUsers.isEmpty
+                  ? const Center(child: Text('Không tìm thấy nhân viên phù hợp.'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      itemCount: staffUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = staffUsers[index];
+                        return Card(
+                          child: ListTile(
+                            leading: Switch(
+                              value: user.isActive,
+                              onChanged: (_) => widget.onToggle(user),
+                            ),
+                            title: Text(user.fullName),
+                            subtitle: Text('${user.username} - ${user.isActive ? 'Đang hoạt động' : 'Đã khóa'}'),
+                            trailing: Wrap(
+                              spacing: 4,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Sửa',
+                                  onPressed: () => widget.onEdit(user),
+                                  icon: const Icon(Icons.edit_outlined),
+                                ),
+                                IconButton(
+                                  tooltip: 'Xóa',
+                                  onPressed: () => widget.onDelete(user),
+                                  icon: const Icon(Icons.delete_outline),
+                                ),
+                              ],
+                            ),
                           ),
-                          IconButton(
-                            tooltip: 'Xoa',
-                            onPressed: () => onDelete(user),
-                            icon: const Icon(Icons.delete_outline),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         );

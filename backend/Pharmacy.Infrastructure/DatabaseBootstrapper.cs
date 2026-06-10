@@ -25,6 +25,19 @@ BEGIN
 END
 """, cancellationToken);
 
+        await db.Database.ExecuteSqlRawAsync("""
+IF COL_LENGTH(N'[Medicines]', N'SalePrice') IS NULL
+BEGIN
+    ALTER TABLE [Medicines] ADD [SalePrice] decimal(18,2) NOT NULL CONSTRAINT [DF_Medicines_SalePrice] DEFAULT 0;
+END
+""", cancellationToken);
+
+        await db.Database.ExecuteSqlRawAsync("""
+UPDATE [Medicines] SET [SalePrice] = 25000 WHERE [Id] = 1 AND [SalePrice] = 0;
+UPDATE [Medicines] SET [SalePrice] = 30000 WHERE [Id] = 2 AND [SalePrice] = 0;
+UPDATE [Medicines] SET [SalePrice] = 45000 WHERE [Id] = 3 AND [SalePrice] = 0;
+""", cancellationToken);
+
         await EnsureRoleAsync(db, UserRoleName.Admin, cancellationToken);
         await EnsureRoleAsync(db, UserRoleName.Staff, cancellationToken);
         await EnsureDefaultUserRolesAsync(db, cancellationToken);

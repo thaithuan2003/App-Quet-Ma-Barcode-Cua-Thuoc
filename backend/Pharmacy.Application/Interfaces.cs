@@ -49,6 +49,11 @@ public interface IVerificationService
 public interface IReportService
 {
     Task<ReportDto> GetSummaryAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<MedicineDto>> GetMedicineInventoryAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BatchDto>> GetBatchesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BatchDto>> GetNearExpiryBatchesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BatchDto>> GetExpiredBatchesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<ScanReportDto>> GetTodayScansAsync(CancellationToken cancellationToken);
 }
 
 public interface IAdminService

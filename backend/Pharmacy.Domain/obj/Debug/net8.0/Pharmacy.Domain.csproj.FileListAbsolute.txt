@@ -9,3 +9,7 @@ C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Domain\obj\Debu
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Domain\obj\Debug\net8.0\refint\Pharmacy.Domain.dll
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Domain\obj\Debug\net8.0\Pharmacy.Domain.pdb
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Domain\obj\Debug\net8.0\ref\Pharmacy.Domain.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Domain.deps.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Domain.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Domain.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Domain\obj\Debug\net8.0\Pharmacy.Domain.sourcelink.json

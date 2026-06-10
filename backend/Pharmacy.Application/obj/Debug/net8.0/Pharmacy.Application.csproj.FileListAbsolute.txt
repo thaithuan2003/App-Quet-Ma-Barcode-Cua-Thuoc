@@ -13,3 +13,7 @@ C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\refint\Pharmacy.Application.dll
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.pdb
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\ref\Pharmacy.Application.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Application.deps.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Application.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Application.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.sourcelink.json

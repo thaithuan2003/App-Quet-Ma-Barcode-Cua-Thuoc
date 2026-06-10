@@ -9,6 +9,7 @@ class Medicine {
     required this.strength,
     required this.usageInstruction,
     required this.warningNote,
+    required this.salePrice,
     required this.requiresPrescription,
     required this.totalQuantity,
     required this.nearestExpiryDate,
@@ -23,6 +24,7 @@ class Medicine {
   final String strength;
   final String usageInstruction;
   final String warningNote;
+  final num salePrice;
   final bool requiresPrescription;
   final int totalQuantity;
   final String? nearestExpiryDate;
@@ -38,6 +40,7 @@ class Medicine {
       strength: json['strength'] as String,
       usageInstruction: json['usageInstruction'] as String,
       warningNote: json['warningNote'] as String,
+      salePrice: json['salePrice'] as num,
       requiresPrescription: json['requiresPrescription'] as bool,
       totalQuantity: json['totalQuantity'] as int,
       nearestExpiryDate: json['nearestExpiryDate'] as String?,

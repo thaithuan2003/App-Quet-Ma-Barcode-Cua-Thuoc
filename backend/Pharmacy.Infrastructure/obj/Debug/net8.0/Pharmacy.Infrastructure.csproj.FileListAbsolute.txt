@@ -17,3 +17,8 @@ C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Infrastructure\
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Infrastructure\obj\Debug\net8.0\Pharmacy.Infrastructure.pdb
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Infrastructure\obj\Debug\net8.0\Pharmacy.Infrastructure.genruntimeconfig.cache
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Infrastructure\obj\Debug\net8.0\ref\Pharmacy.Infrastructure.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Infrastructure.deps.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Infrastructure.runtimeconfig.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Infrastructure.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Infrastructure.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Infrastructure\obj\Debug\net8.0\Pharmacy.Infrastructure.sourcelink.json

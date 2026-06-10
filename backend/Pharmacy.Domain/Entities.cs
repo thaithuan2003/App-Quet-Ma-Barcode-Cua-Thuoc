@@ -46,6 +46,7 @@ public sealed class Medicine : Entity
     public string Strength { get; set; } = string.Empty;
     public string UsageInstruction { get; set; } = string.Empty;
     public string WarningNote { get; set; } = string.Empty;
+    public decimal SalePrice { get; set; }
     public bool RequiresPrescription { get; set; }
     public List<MedicineAlias> Aliases { get; set; } = [];
     public List<MedicineBatch> Batches { get; set; } = [];

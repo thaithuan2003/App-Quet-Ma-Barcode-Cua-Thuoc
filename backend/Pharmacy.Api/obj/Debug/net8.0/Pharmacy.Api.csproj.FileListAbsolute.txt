@@ -148,3 +148,11 @@ C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Api\obj\Debug\n
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Api\obj\Debug\net8.0\Pharmacy.Api.pdb
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Api\obj\Debug\net8.0\Pharmacy.Api.genruntimeconfig.cache
 C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Api\obj\Debug\net8.0\ref\Pharmacy.Api.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\appsettings.Development.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\appsettings.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Api.exe
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Api.deps.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Api.runtimeconfig.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Api.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\tmp_build_check\Pharmacy.Api.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Api\obj\Debug\net8.0\Pharmacy.Api.sourcelink.json

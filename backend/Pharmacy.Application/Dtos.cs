@@ -15,6 +15,7 @@ public sealed record MedicineDto(
     string Strength,
     string UsageInstruction,
     string WarningNote,
+    decimal SalePrice,
     bool RequiresPrescription,
     int TotalQuantity,
     DateOnly? NearestExpiryDate);
@@ -77,6 +78,13 @@ public sealed record ReportDto(
     int NearExpiryBatchCount,
     int TodayScanCount,
     int TodaySaleQuantity);
+
+public sealed record ScanReportDto(
+    int Id,
+    string Barcode,
+    bool Found,
+    string? MedicineName,
+    DateTime CreatedAt);
 
 public sealed record SupplierDto(int Id, string Name, string Phone, string Address);
 

@@ -23,6 +23,7 @@ internal static class MappingExtensions
             medicine.Strength,
             medicine.UsageInstruction,
             medicine.WarningNote,
+            medicine.SalePrice,
             medicine.RequiresPrescription,
             batches.Sum(x => x.InventoryItem?.Quantity ?? 0),
             batches.Where(x => (x.InventoryItem?.Quantity ?? 0) > 0).Select(x => (DateOnly?)x.ExpiryDate).OrderBy(x => x).FirstOrDefault());

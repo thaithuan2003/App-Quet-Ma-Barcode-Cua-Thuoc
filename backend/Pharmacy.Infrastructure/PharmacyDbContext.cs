@@ -22,6 +22,7 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().HasIndex(x => x.Username).IsUnique();
+        modelBuilder.Entity<Medicine>().Property(x => x.SalePrice).HasPrecision(18, 2);
         modelBuilder.Entity<Medicine>().HasIndex(x => x.Barcode).IsUnique();
         modelBuilder.Entity<MedicineBatch>().HasIndex(x => x.BatchNumber);
         modelBuilder.Entity<UserRole>().HasKey(x => new { x.UserId, x.RoleId });
@@ -66,6 +67,7 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Strength = "500mg",
                 UsageInstruction = "Dung theo huong dan cua duoc si hoac bac si.",
                 WarningNote = "Than trong voi benh gan va qua lieu.",
+                SalePrice = 25000,
                 RequiresPrescription = false
             },
             new Medicine
@@ -79,6 +81,7 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Strength = "200mg",
                 UsageInstruction = "Dung sau an, tranh dung khi co tien su loet da day.",
                 WarningNote = "Than trong voi benh da day, than va dung cung thuoc chong dong.",
+                SalePrice = 30000,
                 RequiresPrescription = false
             },
             new Medicine
@@ -92,6 +95,7 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Strength = "500mg",
                 UsageInstruction = "Dung dung lieu va du lieu trinh.",
                 WarningNote = "Can hoi tien su di ung khang sinh beta-lactam.",
+                SalePrice = 45000,
                 RequiresPrescription = true
             });
 
