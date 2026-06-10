@@ -1,0 +1,15 @@
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\bin\Debug\net8.0\Pharmacy.Application.deps.json
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\bin\Debug\net8.0\Pharmacy.Application.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\bin\Debug\net8.0\Pharmacy.Application.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\bin\Debug\net8.0\Pharmacy.Domain.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\bin\Debug\net8.0\Pharmacy.Domain.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.csproj.AssemblyReference.cache
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.AssemblyInfoInputs.cache
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.AssemblyInfo.cs
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.E41351CE.Up2Date
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\refint\Pharmacy.Application.dll
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\Pharmacy.Application.pdb
+C:\Users\Lenovo\AndroidStudioProjects\cnpm_bdtt\backend\Pharmacy.Application\obj\Debug\net8.0\ref\Pharmacy.Application.dll

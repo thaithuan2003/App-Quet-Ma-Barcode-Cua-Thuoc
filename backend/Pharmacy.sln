@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pharmacy.Api", "Pharmacy.Api\Pharmacy.Api.csproj", "{9A91E25F-27C9-4A74-97C1-9427332BA65A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pharmacy.Application", "Pharmacy.Application\Pharmacy.Application.csproj", "{C59BB247-AC59-4CD6-B546-2EA90120C5B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pharmacy.Domain", "Pharmacy.Domain\Pharmacy.Domain.csproj", "{C643C8A8-23B8-4468-9F44-2A7C02073F7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pharmacy.Infrastructure", "Pharmacy.Infrastructure\Pharmacy.Infrastructure.csproj", "{E17A006A-5C56-44B7-B0E4-25697E159605}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A91E25F-27C9-4A74-97C1-9427332BA65A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A91E25F-27C9-4A74-97C1-9427332BA65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A91E25F-27C9-4A74-97C1-9427332BA65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A91E25F-27C9-4A74-97C1-9427332BA65A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C59BB247-AC59-4CD6-B546-2EA90120C5B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C59BB247-AC59-4CD6-B546-2EA90120C5B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C59BB247-AC59-4CD6-B546-2EA90120C5B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C59BB247-AC59-4CD6-B546-2EA90120C5B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C643C8A8-23B8-4468-9F44-2A7C02073F7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C643C8A8-23B8-4468-9F44-2A7C02073F7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C643C8A8-23B8-4468-9F44-2A7C02073F7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C643C8A8-23B8-4468-9F44-2A7C02073F7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E17A006A-5C56-44B7-B0E4-25697E159605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E17A006A-5C56-44B7-B0E4-25697E159605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E17A006A-5C56-44B7-B0E4-25697E159605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E17A006A-5C56-44B7-B0E4-25697E159605}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

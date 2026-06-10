@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Pharmacy.Application/1.0.0": {
+        "dependencies": {
+          "Pharmacy.Domain": "1.0.0"
+        },
+        "runtime": {
+          "Pharmacy.Application.dll": {}
+        }
+      },
+      "Pharmacy.Domain/1.0.0": {
+        "runtime": {
+          "Pharmacy.Domain.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Pharmacy.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Pharmacy.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
