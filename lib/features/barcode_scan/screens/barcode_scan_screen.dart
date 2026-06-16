@@ -92,15 +92,15 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Expanded(child: Text('Da quet: ${_barcodes.length}')),
+              Expanded(child: Text('Đã quét: ${_barcodes.length}')),
               IconButton.filledTonal(
-                tooltip: 'Kiem tra tuong tac',
+                tooltip: 'Kiểm tra tương tác',
                 onPressed: _busy ? null : _checkInteractions,
                 icon: const Icon(Icons.health_and_safety_outlined),
               ),
               const SizedBox(width: 8),
               IconButton.outlined(
-                tooltip: 'Xoa danh sach',
+                tooltip: 'Xóa danh sách',
                 onPressed: _clear,
                 icon: const Icon(Icons.clear_all),
               ),
@@ -119,12 +119,12 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             child: ListTile(
               leading: const Icon(Icons.warning_amber),
               title: Text(_interactionResult!.message),
-              subtitle: Text(_interactionResult!.details.isEmpty ? 'Khong co chi tiet.' : _interactionResult!.details.join('\n')),
+              subtitle: Text(_interactionResult!.details.isEmpty ? 'Không có chi tiết.' : _interactionResult!.details.join('\n')),
             ),
           ),
         Expanded(
           child: _results.isEmpty
-              ? const Center(child: Text('Dua ma vach vao khung camera de quet.'))
+              ? const Center(child: Text('Đưa mã vạch vào khung camera để quét.'))
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                   itemCount: _results.length,
@@ -135,7 +135,18 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                       child: ListTile(
                         leading: Icon(result.found ? Icons.check_circle_outline : Icons.help_outline),
                         title: Text(medicine?.name ?? result.message),
-                        subtitle: Text(medicine?.barcode ?? 'Barcode khong co trong CSDL'),
+                        subtitle: Text(
+                          medicine == null
+                              ? 'Barcode không có trong CSDL'
+                              : 'Giá: ${medicine.salePrice.toStringAsFixed(0)} VND\n'
+                                  'Tồn kho: ${medicine.totalQuantity} - HSD gần nhất: ${medicine.nearestExpiryDate ?? 'Không có'}\n'
+                                  'Nhà sản xuất: ${medicine.manufacturer}\n'
+                                  '${medicine.requiresPrescription ? 'Thuốc kê đơn' : 'Thuốc không kê đơn'}\n'
+                                  'Hướng dẫn: ${medicine.usageInstruction.isEmpty ? 'Không có' : medicine.usageInstruction}\n'
+                                  'Cảnh báo: ${medicine.warningNote.isEmpty ? 'Không có' : medicine.warningNote}\n'
+                                  'Bấm để xem chi tiết và thuốc thay thế',
+                        ),
+                        isThreeLine: true,
                         trailing: medicine == null ? null : const Icon(Icons.chevron_right),
                         onTap: medicine == null
                             ? null

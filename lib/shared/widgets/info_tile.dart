@@ -17,7 +17,7 @@ class InfoTile extends StatelessWidget {
     return ListTile(
       leading: icon == null ? null : Icon(icon),
       title: Text(label, style: Theme.of(context).textTheme.labelLarge),
-      subtitle: Text(value.isEmpty ? 'Khong co' : value),
+      subtitle: Text(value.isEmpty ? 'Không có' : value),
       dense: true,
     );
   }

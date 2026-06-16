@@ -14,6 +14,9 @@ public interface IMedicineService
 {
     Task<MedicineDto?> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken);
     Task<IReadOnlyList<MedicineDto>> SearchAsync(string query, CancellationToken cancellationToken);
+    Task<MedicineDto> CreateAsync(UpsertMedicineRequest request, CancellationToken cancellationToken);
+    Task<MedicineDto> UpdateAsync(int medicineId, UpsertMedicineRequest request, CancellationToken cancellationToken);
+    Task DeleteAsync(int medicineId, CancellationToken cancellationToken);
     Task<IReadOnlyList<MedicineDto>> GetSimilarAsync(int medicineId, CancellationToken cancellationToken);
     Task<InteractionResultDto> CheckInteractionsAsync(IReadOnlyList<string> barcodes, CancellationToken cancellationToken);
 }
@@ -22,6 +25,8 @@ public interface IInventoryService
 {
     Task<IReadOnlyList<BatchDto>> GetBatchesAsync(CancellationToken cancellationToken);
     Task<BatchDto> CreateBatchAsync(CreateBatchRequest request, int userId, CancellationToken cancellationToken);
+    Task<BatchDto> UpdateBatchAsync(int batchId, UpdateBatchRequest request, int userId, CancellationToken cancellationToken);
+    Task DeleteBatchAsync(int batchId, CancellationToken cancellationToken);
     Task<InventoryTransactionDto> ImportAsync(InventoryChangeRequest request, int userId, CancellationToken cancellationToken);
     Task<InventoryTransactionDto> ExportAsync(InventoryChangeRequest request, int userId, CancellationToken cancellationToken);
     Task<InventoryTransactionDto> AdjustAsync(InventoryAdjustmentRequest request, int userId, CancellationToken cancellationToken);
@@ -63,4 +68,17 @@ public interface IAdminService
     Task<UserDto> UpdateStaffAsync(int userId, UpdateStaffRequest request, CancellationToken cancellationToken);
     Task<UserDto> UpdateUserStatusAsync(int userId, UpdateUserStatusRequest request, CancellationToken cancellationToken);
     Task DeleteStaffAsync(int userId, CancellationToken cancellationToken);
+}
+
+public interface ISupplierService
+{
+    Task<IReadOnlyList<SupplierDto>> GetSuppliersAsync(CancellationToken cancellationToken);
+    Task<SupplierDto> CreateAsync(UpsertSupplierRequest request, CancellationToken cancellationToken);
+    Task<SupplierDto> UpdateAsync(int supplierId, UpsertSupplierRequest request, CancellationToken cancellationToken);
+    Task DeleteAsync(int supplierId, CancellationToken cancellationToken);
+}
+
+public interface IConsultationService
+{
+    Task<MedicineConsultationResponse> SearchMedicineAsync(MedicineConsultationRequest request, CancellationToken cancellationToken);
 }

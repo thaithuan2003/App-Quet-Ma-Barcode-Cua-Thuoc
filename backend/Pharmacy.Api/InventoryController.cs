@@ -22,6 +22,21 @@ public sealed class InventoryController(IInventoryService inventory) : Controlle
         return Ok(await inventory.CreateBatchAsync(request, User.GetUserId(), cancellationToken));
     }
 
+    [HttpPut("batches/{batchId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<BatchDto>> UpdateBatch(int batchId, UpdateBatchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await inventory.UpdateBatchAsync(batchId, request, User.GetUserId(), cancellationToken));
+    }
+
+    [HttpDelete("batches/{batchId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteBatch(int batchId, CancellationToken cancellationToken)
+    {
+        await inventory.DeleteBatchAsync(batchId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpPost("import")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<InventoryTransactionDto>> Import(InventoryChangeRequest request, CancellationToken cancellationToken)

@@ -8,6 +8,7 @@ class Batch {
     required this.expiryDate,
     required this.quantity,
     required this.lowStockThreshold,
+    required this.supplierId,
     required this.supplierName,
   });
 
@@ -19,6 +20,7 @@ class Batch {
   final String expiryDate;
   final int quantity;
   final int lowStockThreshold;
+  final int? supplierId;
   final String? supplierName;
 
   factory Batch.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class Batch {
       expiryDate: json['expiryDate'] as String,
       quantity: json['quantity'] as int,
       lowStockThreshold: json['lowStockThreshold'] as int,
+      supplierId: json['supplierId'] as int?,
       supplierName: json['supplierName'] as String?,
     );
   }

@@ -25,7 +25,7 @@ public sealed class JwtTokenProvider(IConfiguration configuration) : ITokenProvi
             issuer: jwt["Issuer"],
             audience: jwt["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(12),
+            expires: DateTime.UtcNow.AddDays(7),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

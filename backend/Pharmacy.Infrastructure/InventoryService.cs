@@ -20,6 +20,22 @@ public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts)
 
     public async Task<BatchDto> CreateBatchAsync(CreateBatchRequest request, int userId, CancellationToken cancellationToken)
     {
+        if (request.Quantity < 0)
+        {
+            throw new InvalidOperationException("Số lượng lô thuốc không hợp lệ.");
+        }
+        if (string.IsNullOrWhiteSpace(request.BatchNumber))
+        {
+            throw new InvalidOperationException("Số lô không được để trống.");
+        }
+        if (!await db.Medicines.AnyAsync(x => x.Id == request.MedicineId, cancellationToken))
+        {
+            throw new InvalidOperationException("Không tìm thấy thuốc để tạo lô.");
+        }
+        if (request.SupplierId is null || !await db.Suppliers.AnyAsync(x => x.Id == request.SupplierId, cancellationToken))
+        {
+            throw new InvalidOperationException("Vui lòng chọn nhà cung ứng hợp lệ.");
+        }
         var batch = new MedicineBatch
         {
             MedicineId = request.MedicineId,
@@ -52,6 +68,86 @@ public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts)
             .Include(x => x.Supplier)
             .Include(x => x.InventoryItem)
             .FirstAsync(x => x.Id == batch.Id, cancellationToken)).ToDto();
+    }
+
+    public async Task<BatchDto> UpdateBatchAsync(int batchId, UpdateBatchRequest request, int userId, CancellationToken cancellationToken)
+    {
+        var batch = await db.MedicineBatches
+            .Include(x => x.Medicine)
+            .Include(x => x.Supplier)
+            .Include(x => x.InventoryItem)
+            .FirstOrDefaultAsync(x => x.Id == batchId, cancellationToken)
+            ?? throw new InvalidOperationException("Không tìm thấy lô thuốc.");
+
+        if (request.Quantity < 0)
+        {
+            throw new InvalidOperationException("Số lượng tồn không hợp lệ.");
+        }
+        if (string.IsNullOrWhiteSpace(request.BatchNumber))
+        {
+            throw new InvalidOperationException("Số lô không được để trống.");
+        }
+        if (!await db.Medicines.AnyAsync(x => x.Id == request.MedicineId, cancellationToken))
+        {
+            throw new InvalidOperationException("Không tìm thấy thuốc để cập nhật lô.");
+        }
+        if (request.SupplierId is null || !await db.Suppliers.AnyAsync(x => x.Id == request.SupplierId, cancellationToken))
+        {
+            throw new InvalidOperationException("Vui lòng chọn nhà cung ứng hợp lệ.");
+        }
+
+        batch.MedicineId = request.MedicineId;
+        batch.SupplierId = request.SupplierId;
+        batch.BatchNumber = request.BatchNumber.Trim();
+        batch.ManufactureDate = request.ManufactureDate;
+        batch.ExpiryDate = request.ExpiryDate;
+        batch.UpdatedAt = DateTime.UtcNow;
+        if (batch.InventoryItem is null)
+        {
+            batch.InventoryItem = new InventoryItem { Quantity = request.Quantity, LowStockThreshold = request.LowStockThreshold };
+        }
+        else
+        {
+            batch.InventoryItem.Quantity = request.Quantity;
+            batch.InventoryItem.LowStockThreshold = request.LowStockThreshold;
+            batch.InventoryItem.UpdatedAt = DateTime.UtcNow;
+        }
+
+        db.InventoryTransactions.Add(new InventoryTransaction
+        {
+            MedicineBatchId = batch.Id,
+            UserId = userId,
+            Type = InventoryTransactionType.Adjustment,
+            Quantity = request.Quantity,
+            Note = "Cập nhật lô thuốc"
+        });
+        await db.SaveChangesAsync(cancellationToken);
+        await alerts.RefreshSystemAlertsAsync(cancellationToken);
+        return (await db.MedicineBatches
+            .Include(x => x.Medicine)
+            .Include(x => x.Supplier)
+            .Include(x => x.InventoryItem)
+            .FirstAsync(x => x.Id == batchId, cancellationToken)).ToDto();
+    }
+
+    public async Task DeleteBatchAsync(int batchId, CancellationToken cancellationToken)
+    {
+        var batch = await db.MedicineBatches
+            .Include(x => x.InventoryItem)
+            .FirstOrDefaultAsync(x => x.Id == batchId, cancellationToken)
+            ?? throw new InvalidOperationException("Không tìm thấy lô thuốc.");
+
+        var transactions = await db.InventoryTransactions.Where(x => x.MedicineBatchId == batchId).ToListAsync(cancellationToken);
+        var alertsForBatch = await db.Alerts.Where(x => x.MedicineBatchId == batchId).ToListAsync(cancellationToken);
+        db.InventoryTransactions.RemoveRange(transactions);
+        db.Alerts.RemoveRange(alertsForBatch);
+        if (batch.InventoryItem is not null)
+        {
+            db.InventoryItems.Remove(batch.InventoryItem);
+        }
+        db.MedicineBatches.Remove(batch);
+        await db.SaveChangesAsync(cancellationToken);
+        await alerts.RefreshSystemAlertsAsync(cancellationToken);
     }
 
     public Task<InventoryTransactionDto> ImportAsync(InventoryChangeRequest request, int userId, CancellationToken cancellationToken)

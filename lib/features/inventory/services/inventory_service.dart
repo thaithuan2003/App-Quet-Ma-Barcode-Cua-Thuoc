@@ -32,6 +32,31 @@ class InventoryService {
     });
   }
 
+  Future<void> updateBatch({
+    required int batchId,
+    required int medicineId,
+    int? supplierId,
+    required String batchNumber,
+    required String manufactureDate,
+    required String expiryDate,
+    required int quantity,
+    required int lowStockThreshold,
+  }) async {
+    await _apiClient.put('/inventory/batches/$batchId', {
+      'medicineId': medicineId,
+      'supplierId': supplierId,
+      'batchNumber': batchNumber,
+      'manufactureDate': manufactureDate,
+      'expiryDate': expiryDate,
+      'quantity': quantity,
+      'lowStockThreshold': lowStockThreshold,
+    });
+  }
+
+  Future<void> deleteBatch(int batchId) async {
+    await _apiClient.delete('/inventory/batches/$batchId');
+  }
+
   Future<void> importStock(int batchId, int quantity, String note) async {
     await _apiClient.post('/inventory/import', {
       'medicineBatchId': batchId,

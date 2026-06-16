@@ -20,6 +20,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IConsultationService, ConsultationService>();
 
         return services;
     }

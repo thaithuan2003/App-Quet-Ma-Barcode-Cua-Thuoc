@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../shared/widgets/app_error.dart';
+import '../../../shared/widgets/app_text_field.dart';
 import '../models/admin_user.dart';
 import '../services/admin_service.dart';
 
@@ -168,6 +169,10 @@ class _UsersTabState extends State<_UsersTab> {
     super.dispose();
   }
 
+  void _search() {
+    setState(() => _query = _searchController.text.trim());
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AdminUser>>(
@@ -217,23 +222,26 @@ class _UsersTabState extends State<_UsersTab> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  TextField(
+                  AppTextField(
                     controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Tìm theo họ tên hoặc tên đăng nhập',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _query.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Xóa tìm kiếm',
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _query = '');
-                              },
-                              icon: const Icon(Icons.clear),
-                            ),
-                    ),
-                    onChanged: (value) => setState(() => _query = value),
+                    labelText: 'Tìm theo họ tên hoặc tên đăng nhập',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _query.isEmpty
+                        ? IconButton(
+                            tooltip: 'Tìm',
+                            onPressed: _search,
+                            icon: const Icon(Icons.search),
+                          )
+                        : IconButton(
+                            tooltip: 'Xóa tìm kiếm',
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _query = '');
+                            },
+                            icon: const Icon(Icons.clear),
+                          ),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _search(),
                   ),
                 ],
               ),
@@ -340,7 +348,7 @@ class _StaffFormSheetState extends State<_StaffFormSheet> {
       }
     } catch (_) {
       if (mounted) {
-        await _showFormErrorDialog('Khong luu duoc du lieu.');
+        await _showFormErrorDialog('Không lưu được dữ liệu.');
         setState(() => _saving = false);
       }
     }
@@ -371,12 +379,12 @@ class _StaffFormSheetState extends State<_StaffFormSheet> {
       saving: _saving,
       onSave: _save,
       children: [
-        TextField(controller: _fullNameController, decoration: const InputDecoration(labelText: 'Ho ten')),
-        TextField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Ten dang nhap')),
-        TextField(
+        AppTextField(controller: _fullNameController, labelText: 'Họ tên'),
+        AppTextField(controller: _usernameController, labelText: 'Tên đăng nhập'),
+        AppTextField(
           controller: _passwordController,
           obscureText: true,
-          decoration: InputDecoration(labelText: widget.user == null ? 'Mat khau' : 'Mat khau moi (bo trong neu khong doi)'),
+          labelText: widget.user == null ? 'Mật khẩu' : 'Mật khẩu mới (bỏ trống nếu không đổi)',
         ),
       ],
     );

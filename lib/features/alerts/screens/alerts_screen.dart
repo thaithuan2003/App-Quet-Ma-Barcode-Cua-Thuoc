@@ -43,11 +43,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
         }
         if (snapshot.hasError) {
           final error = snapshot.error;
-          return AppError(message: error is ApiException ? error.message : 'Khong tai duoc canh bao.', onRetry: _reload);
+          return AppError(message: error is ApiException ? error.message : 'Không tải được cảnh báo.', onRetry: _reload);
         }
         final items = snapshot.data ?? [];
         if (items.isEmpty) {
-          return const Center(child: Text('Khong co canh bao dang mo.'));
+          return const Center(child: Text('Không có cảnh báo đang mở.'));
         }
         return RefreshIndicator(
           onRefresh: () async => _reload(),

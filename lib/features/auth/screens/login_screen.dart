@@ -9,10 +9,12 @@ class LoginScreen extends StatefulWidget {
     super.key,
     required this.authService,
     required this.onSignedIn,
+    this.message,
   });
 
   final AuthService authService;
   final ValueChanged<AuthSession> onSignedIn;
+  final String? message;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -67,6 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   Icon(Icons.local_pharmacy, size: 72, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 20),
                   Text('Pharmacy Barcode', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+                  if (widget.message != null) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(widget.message!, textAlign: TextAlign.center),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 28),
                   TextField(
                     controller: _usernameController,
@@ -88,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: _loading
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.login),
-                    label: const Text('Dang nhap'),
+                    label: const Text('Đăng nhập'),
                   ),
                   const SizedBox(height: 12),
                   const Text('Demo: admin/admin123, staff/staff123', textAlign: TextAlign.center),

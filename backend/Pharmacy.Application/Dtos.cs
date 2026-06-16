@@ -20,6 +20,18 @@ public sealed record MedicineDto(
     int TotalQuantity,
     DateOnly? NearestExpiryDate);
 
+public sealed record UpsertMedicineRequest(
+    string Name,
+    string Barcode,
+    string ActiveIngredient,
+    string Manufacturer,
+    string DosageForm,
+    string Strength,
+    string UsageInstruction,
+    string WarningNote,
+    decimal SalePrice,
+    bool RequiresPrescription);
+
 public sealed record BatchDto(
     int Id,
     int MedicineId,
@@ -29,6 +41,7 @@ public sealed record BatchDto(
     DateOnly ExpiryDate,
     int Quantity,
     int LowStockThreshold,
+    int? SupplierId,
     string? SupplierName);
 
 public sealed record InventoryTransactionDto(
@@ -52,8 +65,17 @@ public sealed record CreateBatchRequest(
     int Quantity,
     int LowStockThreshold);
 
+public sealed record UpdateBatchRequest(
+    int MedicineId,
+    int? SupplierId,
+    string BatchNumber,
+    DateOnly ManufactureDate,
+    DateOnly ExpiryDate,
+    int Quantity,
+    int LowStockThreshold);
+
 public sealed record ScanRequest(string Barcode);
-public sealed record ScanResponse(bool Found, string Message, MedicineDto? Medicine);
+public sealed record ScanResponse(bool Found, string Message, string Barcode, DateTime CreatedAt, MedicineDto? Medicine);
 public sealed record MultiScanRequest(IReadOnlyList<string> Barcodes);
 
 public sealed record InteractionResultDto(AlertSeverity Severity, string Message, IReadOnlyList<string> Details);
@@ -87,6 +109,15 @@ public sealed record ScanReportDto(
     DateTime CreatedAt);
 
 public sealed record SupplierDto(int Id, string Name, string Phone, string Address);
+public sealed record UpsertSupplierRequest(string Name, string Phone, string Address);
+
+public sealed record MedicineConsultationRequest(string MedicineName);
+public sealed record MedicineConsultationResponse(
+    string MedicineName,
+    string Summary,
+    string SourceTitle,
+    string SourceUrl,
+    string SourceSnippet);
 
 public sealed record UserDto(int Id, string FullName, string Username, bool IsActive, IReadOnlyList<string> Roles);
 public sealed record CreateStaffRequest(string FullName, string Username, string Password);

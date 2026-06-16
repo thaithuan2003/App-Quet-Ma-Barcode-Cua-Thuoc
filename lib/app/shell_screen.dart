@@ -4,11 +4,13 @@ import '../core/api/api_client.dart';
 import '../features/admin/screens/admin_screen.dart';
 import '../features/alerts/screens/alerts_screen.dart';
 import '../features/barcode_scan/screens/barcode_scan_screen.dart';
+import '../features/consultation/screens/consultation_screen.dart';
 import '../features/history/screens/history_screen.dart';
 import '../features/inventory/screens/inventory_screen.dart';
 import '../features/medicine/screens/medicine_search_screen.dart';
 import '../features/medicine/screens/verification_screen.dart';
 import '../features/reports/screens/reports_screen.dart';
+import '../features/suppliers/screens/suppliers_screen.dart';
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({
@@ -33,15 +35,18 @@ class _ShellScreenState extends State<ShellScreen> {
 
   List<_Page> _buildPages() {
     return [
-      _Page('Quet ma', Icons.qr_code_scanner, BarcodeScanScreen(apiClient: widget.apiClient)),
-      _Page('Tim thuoc', Icons.search, MedicineSearchScreen(apiClient: widget.apiClient)),
-      _Page('Kho va lo', Icons.inventory_2_outlined, InventoryScreen(apiClient: widget.apiClient)),
-      _Page('Lich su', Icons.history, HistoryScreen(apiClient: widget.apiClient)),
-      _Page('Xac thuc', Icons.verified_user_outlined, VerificationScreen(apiClient: widget.apiClient)),
-      _Page('Canh bao', Icons.warning_amber, AlertsScreen(apiClient: widget.apiClient)),
-      _Page('Bao cao', Icons.bar_chart, ReportsScreen(apiClient: widget.apiClient)),
+      _Page('Quét mã', Icons.qr_code_scanner, BarcodeScanScreen(apiClient: widget.apiClient)),
+      _Page('Tư vấn', Icons.support_agent_outlined, ConsultationScreen(apiClient: widget.apiClient)),
+      _Page('Tìm thuốc', Icons.search, MedicineSearchScreen(apiClient: widget.apiClient)),
+      _Page('Kho và lô', Icons.inventory_2_outlined, InventoryScreen(apiClient: widget.apiClient)),
+      _Page('Lịch sử quét', Icons.history, HistoryScreen(apiClient: widget.apiClient)),
+      _Page('Xác thực', Icons.verified_user_outlined, VerificationScreen(apiClient: widget.apiClient)),
+      _Page('Cảnh báo', Icons.warning_amber, AlertsScreen(apiClient: widget.apiClient)),
+      _Page('Danh sách thuốc', Icons.medication_outlined, ReportsScreen(apiClient: widget.apiClient)),
       if (widget.roles.contains('Admin'))
-        _Page('Quan tri', Icons.admin_panel_settings_outlined, AdminScreen(apiClient: widget.apiClient)),
+        _Page('Nhà cung ứng', Icons.local_shipping_outlined, SuppliersScreen(apiClient: widget.apiClient)),
+      if (widget.roles.contains('Admin'))
+        _Page('Quản trị', Icons.admin_panel_settings_outlined, AdminScreen(apiClient: widget.apiClient)),
     ];
   }
 
@@ -53,7 +58,7 @@ class _ShellScreenState extends State<ShellScreen> {
         title: Text(page.title),
         actions: [
           IconButton(
-            tooltip: 'Dang xuat',
+            tooltip: 'Đăng xuất',
             onPressed: widget.onLogout,
             icon: const Icon(Icons.logout),
           ),
@@ -68,7 +73,7 @@ class _ShellScreenState extends State<ShellScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(28, 24, 16, 12),
-            child: Text('Chuc nang'),
+            child: Text('Chức năng'),
           ),
           for (final item in _pages)
             NavigationDrawerDestination(

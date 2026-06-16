@@ -35,6 +35,55 @@ public sealed class MedicineService(PharmacyDbContext db) : IMedicineService
         return result;
     }
 
+    public async Task<MedicineDto> CreateAsync(UpsertMedicineRequest request, CancellationToken cancellationToken)
+    {
+        Validate(request);
+        var barcode = request.Barcode.Trim();
+        if (await db.Medicines.AnyAsync(x => x.Barcode == barcode, cancellationToken))
+        {
+            throw new InvalidOperationException("Mã vạch thuốc đã tồn tại.");
+        }
+
+        var medicine = new Medicine();
+        Apply(medicine, request);
+        db.Medicines.Add(medicine);
+        await db.SaveChangesAsync(cancellationToken);
+        return await medicine.ToDtoAsync(db, cancellationToken);
+    }
+
+    public async Task<MedicineDto> UpdateAsync(int medicineId, UpsertMedicineRequest request, CancellationToken cancellationToken)
+    {
+        Validate(request);
+        var medicine = await db.Medicines.FirstOrDefaultAsync(x => x.Id == medicineId, cancellationToken)
+            ?? throw new InvalidOperationException("Không tìm thấy thuốc.");
+        var barcode = request.Barcode.Trim();
+        if (await db.Medicines.AnyAsync(x => x.Id != medicineId && x.Barcode == barcode, cancellationToken))
+        {
+            throw new InvalidOperationException("Mã vạch thuốc đã tồn tại.");
+        }
+
+        Apply(medicine, request);
+        medicine.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return await medicine.ToDtoAsync(db, cancellationToken);
+    }
+
+    public async Task DeleteAsync(int medicineId, CancellationToken cancellationToken)
+    {
+        var medicine = await db.Medicines
+            .Include(x => x.Batches)
+            .FirstOrDefaultAsync(x => x.Id == medicineId, cancellationToken)
+            ?? throw new InvalidOperationException("Không tìm thấy thuốc.");
+
+        if (medicine.Batches.Any())
+        {
+            throw new InvalidOperationException("Thuốc đã có lô/tồn kho, không thể xóa. Hãy xóa lô thuốc trước.");
+        }
+
+        db.Medicines.Remove(medicine);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<MedicineDto>> GetSimilarAsync(int medicineId, CancellationToken cancellationToken)
     {
         var source = await db.Medicines.FindAsync([medicineId], cancellationToken);
@@ -88,5 +137,35 @@ public sealed class MedicineService(PharmacyDbContext db) : IMedicineService
             : "Can kiem tra lai truoc khi cap phat.";
 
         return new InteractionResultDto(severity, message, details);
+    }
+
+    private static void Validate(UpsertMedicineRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new InvalidOperationException("Tên thuốc không được để trống.");
+        }
+        if (string.IsNullOrWhiteSpace(request.Barcode))
+        {
+            throw new InvalidOperationException("Mã vạch thuốc không được để trống.");
+        }
+        if (request.SalePrice < 0)
+        {
+            throw new InvalidOperationException("Đơn giá bán không hợp lệ.");
+        }
+    }
+
+    private static void Apply(Medicine medicine, UpsertMedicineRequest request)
+    {
+        medicine.Name = request.Name.Trim();
+        medicine.Barcode = request.Barcode.Trim();
+        medicine.ActiveIngredient = request.ActiveIngredient.Trim();
+        medicine.Manufacturer = request.Manufacturer.Trim();
+        medicine.DosageForm = request.DosageForm.Trim();
+        medicine.Strength = request.Strength.Trim();
+        medicine.UsageInstruction = request.UsageInstruction.Trim();
+        medicine.WarningNote = request.WarningNote.Trim();
+        medicine.SalePrice = request.SalePrice;
+        medicine.RequiresPrescription = request.RequiresPrescription;
     }
 }

@@ -40,6 +40,7 @@ internal static class MappingExtensions
             batch.ExpiryDate,
             batch.InventoryItem?.Quantity ?? 0,
             batch.InventoryItem?.LowStockThreshold ?? 0,
+            batch.SupplierId,
             batch.Supplier?.Name);
     }
 

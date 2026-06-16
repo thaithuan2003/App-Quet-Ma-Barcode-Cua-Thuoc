@@ -22,6 +22,28 @@ public sealed class MedicinesController(IMedicineService medicines) : Controller
         return Ok(await medicines.SearchAsync(q, cancellationToken));
     }
 
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<MedicineDto>> Create(UpsertMedicineRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await medicines.CreateAsync(request, cancellationToken));
+    }
+
+    [HttpPut("{medicineId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<MedicineDto>> Update(int medicineId, UpsertMedicineRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await medicines.UpdateAsync(medicineId, request, cancellationToken));
+    }
+
+    [HttpDelete("{medicineId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(int medicineId, CancellationToken cancellationToken)
+    {
+        await medicines.DeleteAsync(medicineId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("{medicineId:int}/similar")]
     public async Task<ActionResult<IReadOnlyList<MedicineDto>>> Similar(int medicineId, CancellationToken cancellationToken)
     {

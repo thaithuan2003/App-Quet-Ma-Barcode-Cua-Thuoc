@@ -9,21 +9,22 @@ public sealed class ScanService(PharmacyDbContext db) : IScanService
     public async Task<ScanResponse> ScanAsync(ScanRequest request, int userId, CancellationToken cancellationToken)
     {
         var medicine = await db.Medicines.FirstOrDefaultAsync(x => x.Barcode == request.Barcode, cancellationToken);
-        db.ScanHistories.Add(new ScanHistory
+        var history = new ScanHistory
         {
             UserId = userId,
             MedicineId = medicine?.Id,
             Barcode = request.Barcode,
             Found = medicine is not null
-        });
+        };
+        db.ScanHistories.Add(history);
         await db.SaveChangesAsync(cancellationToken);
 
         if (medicine is null)
         {
-            return new ScanResponse(false, "Khong tim thay thuoc voi ma vach nay.", null);
+            return new ScanResponse(false, "Khong tim thay thuoc voi ma vach nay.", request.Barcode, history.CreatedAt, null);
         }
 
-        return new ScanResponse(true, "Tim thay thuoc.", await medicine.ToDtoAsync(db, cancellationToken));
+        return new ScanResponse(true, "Tim thay thuoc.", request.Barcode, history.CreatedAt, await medicine.ToDtoAsync(db, cancellationToken));
     }
 
     public async Task<IReadOnlyList<ScanResponse>> MultiScanAsync(MultiScanRequest request, int userId, CancellationToken cancellationToken)
@@ -52,6 +53,8 @@ public sealed class ScanService(PharmacyDbContext db) : IScanService
             result.Add(new ScanResponse(
                 item.Found,
                 item.Found ? "Da quet thanh cong." : "Khong tim thay thuoc.",
+                item.Barcode,
+                item.CreatedAt,
                 item.Medicine is null ? null : await item.Medicine.ToDtoAsync(db, cancellationToken)));
         }
 

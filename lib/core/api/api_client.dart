@@ -6,10 +6,15 @@ import '../storage/token_storage.dart';
 import 'api_exception.dart';
 
 class ApiClient {
-  ApiClient({required this.baseUrl, required this.tokenStorage});
+  ApiClient({
+    required this.baseUrl,
+    required this.tokenStorage,
+    this.onUnauthorized,
+  });
 
   final String baseUrl;
   final TokenStorage tokenStorage;
+  final Future<void> Function()? onUnauthorized;
 
   Future<dynamic> get(String path, {Map<String, String>? query}) async {
     final uri = _buildUri(path, query);
@@ -74,14 +79,19 @@ class ApiClient {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return decoded;
       }
+      if (response.statusCode == 401) {
+        await tokenStorage.clear();
+        await onUnauthorized?.call();
+        throw const ApiException('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', statusCode: 401);
+      }
       final message = decoded is Map<String, dynamic> && decoded['message'] != null
           ? decoded['message'].toString()
-          : 'Loi ket noi may chu (${response.statusCode}).';
+          : 'Lỗi kết nối máy chủ (${response.statusCode}).';
       throw ApiException(message, statusCode: response.statusCode);
     } on ApiException {
       rethrow;
     } catch (_) {
-      throw const ApiException('Khong the ket noi may chu. Hay kiem tra API hoac mang.');
+      throw const ApiException('Không thể kết nối máy chủ. Hãy kiểm tra API hoặc mạng.');
     }
   }
 }

@@ -19,12 +19,14 @@ class _PharmacyAppState extends State<PharmacyApp> {
   late final ApiClient _apiClient = ApiClient(
     baseUrl: AppConfig.apiBaseUrl,
     tokenStorage: _tokenStorage,
+    onUnauthorized: _handleSessionExpired,
   );
   late final AuthService _authService = AuthService(_apiClient, _tokenStorage);
 
   bool _loading = true;
   bool _signedIn = false;
   List<String> _roles = [];
+  String? _loginMessage;
 
   @override
   void initState() {
@@ -47,6 +49,18 @@ class _PharmacyAppState extends State<PharmacyApp> {
     setState(() {
       _signedIn = false;
       _roles = [];
+      _loginMessage = null;
+    });
+  }
+
+  Future<void> _handleSessionExpired() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _signedIn = false;
+      _roles = [];
+      _loginMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
     });
   }
 
@@ -56,7 +70,26 @@ class _PharmacyAppState extends State<PharmacyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Pharmacy Barcode',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F766E)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF60A5FA),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF1F7FF),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFDCEEFF),
+          foregroundColor: Color(0xFF0F172A),
+          centerTitle: true,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 1,
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
         useMaterial3: true,
       ),
       home: _loading
@@ -65,9 +98,11 @@ class _PharmacyAppState extends State<PharmacyApp> {
               ? ShellScreen(apiClient: _apiClient, roles: _roles, onLogout: _handleLogout)
               : LoginScreen(
                   authService: _authService,
+                  message: _loginMessage,
                   onSignedIn: (session) => setState(() {
                     _signedIn = true;
                     _roles = session.roles;
+                    _loginMessage = null;
                   }),
                 ),
     );

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../shared/widgets/app_error.dart';
+import '../../../shared/widgets/app_text_field.dart';
 import '../models/medicine.dart';
 import '../services/medicine_service.dart';
 import 'medicine_detail_screen.dart';
@@ -46,12 +47,10 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
           child: Row(
             children: [
               Expanded(
-                child: TextField(
+                child: AppTextField(
                   controller: _queryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ten thuoc, hoat chat hoac barcode',
-                    prefixIcon: Icon(Icons.search),
-                  ),
+                  labelText: 'Tên thuốc, hoạt chất hoặc mã vạch',
+                  prefixIcon: const Icon(Icons.search),
                   onSubmitted: (_) => _search(),
                 ),
               ),
@@ -74,13 +73,13 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
               if (snapshot.hasError) {
                 final error = snapshot.error;
                 return AppError(
-                  message: error is ApiException ? error.message : 'Khong tai duoc danh sach thuoc.',
+                  message: error is ApiException ? error.message : 'Không tải được danh sách thuốc.',
                   onRetry: _search,
                 );
               }
               final items = snapshot.data ?? [];
               if (items.isEmpty) {
-                return const Center(child: Text('Khong tim thay thuoc phu hop.'));
+                return const Center(child: Text('Không tìm thấy thuốc phù hợp.'));
               }
               return ListView.builder(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),

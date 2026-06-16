@@ -33,29 +33,29 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           Card(
             child: Column(
               children: [
-                InfoTile(label: 'Barcode', value: medicine.barcode, icon: Icons.qr_code),
-                InfoTile(label: 'Hoat chat', value: medicine.activeIngredient, icon: Icons.science_outlined),
-                InfoTile(label: 'Ham luong', value: medicine.strength, icon: Icons.medication_outlined),
-                InfoTile(label: 'Dang bao che', value: medicine.dosageForm, icon: Icons.category_outlined),
-                InfoTile(label: 'Nha san xuat', value: medicine.manufacturer, icon: Icons.factory_outlined),
+                InfoTile(label: 'Mã vạch', value: medicine.barcode, icon: Icons.qr_code),
+                InfoTile(label: 'Hoạt chất', value: medicine.activeIngredient, icon: Icons.science_outlined),
+                InfoTile(label: 'Hàm lượng', value: medicine.strength, icon: Icons.medication_outlined),
+                InfoTile(label: 'Dạng bào chế', value: medicine.dosageForm, icon: Icons.category_outlined),
+                InfoTile(label: 'Nhà sản xuất', value: medicine.manufacturer, icon: Icons.factory_outlined),
                 InfoTile(label: 'Đơn giá bán', value: '${medicine.salePrice.toStringAsFixed(0)} VND', icon: Icons.sell_outlined),
-                InfoTile(label: 'Ton kho', value: '${medicine.totalQuantity}', icon: Icons.inventory_outlined),
-                InfoTile(label: 'Han gan nhat', value: AppDateUtils.formatDate(medicine.nearestExpiryDate), icon: Icons.event_outlined),
-                InfoTile(label: 'Can don', value: medicine.requiresPrescription ? 'Co' : 'Khong', icon: Icons.assignment_outlined),
+                InfoTile(label: 'Số lượng tồn', value: '${medicine.totalQuantity}', icon: Icons.inventory_outlined),
+                InfoTile(label: 'Hạn sử dụng gần nhất', value: AppDateUtils.formatDate(medicine.nearestExpiryDate), icon: Icons.event_outlined),
+                InfoTile(label: 'Phân loại', value: medicine.requiresPrescription ? 'Thuốc kê đơn' : 'Thuốc không kê đơn', icon: Icons.assignment_outlined),
               ],
             ),
           ),
           Card(
             child: Column(
               children: [
-                InfoTile(label: 'Huong dan', value: medicine.usageInstruction, icon: Icons.info_outline),
-                InfoTile(label: 'Canh bao', value: medicine.warningNote, icon: Icons.warning_amber),
+                InfoTile(label: 'Hướng dẫn sử dụng', value: medicine.usageInstruction, icon: Icons.info_outline),
+                InfoTile(label: 'Cảnh báo', value: medicine.warningNote, icon: Icons.warning_amber),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-            child: Text('Thuoc tuong tu rule-based', style: Theme.of(context).textTheme.titleMedium),
+            child: Text('Thuốc thay thế', style: Theme.of(context).textTheme.titleMedium),
           ),
           FutureBuilder<List<Medicine>>(
             future: _similarFuture,
@@ -65,7 +65,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               }
               final items = snapshot.data ?? [];
               if (items.isEmpty) {
-                return const ListTile(title: Text('Chua co goi y phu hop.'));
+                return const ListTile(title: Text('Chưa có thuốc thay thế phù hợp.'));
               }
               return Column(
                 children: [
