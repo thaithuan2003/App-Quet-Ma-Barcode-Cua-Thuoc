@@ -22,15 +22,18 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+  final TextEditingController _searchController = TextEditingController();
   late final InventoryService _service = InventoryService(widget.apiClient);
   late final MedicineService _medicineService = MedicineService(widget.apiClient);
   late final SupplierService _supplierService = SupplierService(widget.apiClient);
   late final TabController _tabController = TabController(length: 2, vsync: this);
   late Future<List<Batch>> _batchesFuture = _service.batches();
   late Future<List<InventoryTransaction>> _transactionsFuture = _loadImportHistory();
+  String _query = '';
 
   @override
   void dispose() {
+    _searchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -42,9 +45,14 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   void _reload() {
     setState(() {
-      _batchesFuture = _service.batches();
+      _batchesFuture = _service.batches(query: _query);
       _transactionsFuture = _loadImportHistory();
     });
+  }
+
+  void _search() {
+    _query = _searchController.text.trim();
+    _reload();
   }
 
   Future<void> _showError(String message) async {
@@ -139,14 +147,31 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.icon(
-              onPressed: () => _openBatchForm(),
-              icon: const Icon(Icons.add),
-              label: const Text('Thêm lô thuốc'),
-            ),
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _searchController,
+                  labelText: 'Tìm theo số lô hoặc tên thuốc',
+                  prefixIcon: const Icon(Icons.search),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _search(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                tooltip: 'Tìm',
+                onPressed: _search,
+                icon: const Icon(Icons.search),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: () => _openBatchForm(),
+                icon: const Icon(Icons.add),
+                label: const Text('Thêm lô thuốc'),
+              ),
+            ],
           ),
         ),
         TabBar(
@@ -163,6 +188,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
               _BatchList(
                 future: _batchesFuture,
                 onRetry: _reload,
+                onOpenDetails: _openBatchDetails,
                 onEdit: _openBatchForm,
                 onDelete: _deleteBatch,
               ),
@@ -173,18 +199,28 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       ],
     );
   }
+
+  Future<void> _openBatchDetails(Batch batch) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _BatchDetailsSheet(batch: batch),
+    );
+  }
 }
 
 class _BatchList extends StatelessWidget {
   const _BatchList({
     required this.future,
     required this.onRetry,
+    required this.onOpenDetails,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Future<List<Batch>> future;
   final VoidCallback onRetry;
+  final ValueChanged<Batch> onOpenDetails;
   final ValueChanged<Batch> onEdit;
   final ValueChanged<Batch> onDelete;
 
@@ -202,7 +238,7 @@ class _BatchList extends StatelessWidget {
         }
         final items = snapshot.data ?? [];
         if (items.isEmpty) {
-          return const Center(child: Text('Chưa có lô thuốc.'));
+          return const Center(child: Text('Không có lô thuốc phù hợp.'));
         }
         return RefreshIndicator(
           onRefresh: () async => onRetry(),
@@ -220,6 +256,7 @@ class _BatchList extends StatelessWidget {
                     'Nhà cung ứng: ${batch.supplierName ?? 'Chưa chọn'}',
                   ),
                   isThreeLine: true,
+                  onTap: () => onOpenDetails(batch),
                   trailing: PopupMenuButton<_BatchAction>(
                     itemBuilder: (context) => const [
                       PopupMenuItem(value: _BatchAction.edit, child: Text('Sửa lô')),
@@ -239,6 +276,68 @@ class _BatchList extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _BatchDetailsSheet extends StatelessWidget {
+  const _BatchDetailsSheet({required this.batch});
+
+  final Batch batch;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('Chi tiết lô thuốc', style: Theme.of(context).textTheme.titleMedium)),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _BatchDetailRow(label: 'Tên thuốc', value: batch.medicineName),
+              _BatchDetailRow(label: 'Số lô', value: batch.batchNumber),
+              _BatchDetailRow(label: 'Ngày sản xuất', value: batch.manufactureDate),
+              _BatchDetailRow(label: 'Hạn sử dụng', value: batch.expiryDate),
+              _BatchDetailRow(label: 'Số lượng tồn', value: batch.quantity.toString()),
+              _BatchDetailRow(label: 'Ngưỡng tồn thấp', value: batch.lowStockThreshold.toString()),
+              _BatchDetailRow(label: 'Nhà cung ứng', value: batch.supplierName ?? 'Chưa chọn'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BatchDetailRow extends StatelessWidget {
+  const _BatchDetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 }

@@ -23,7 +23,7 @@ public interface IMedicineService
 
 public interface IInventoryService
 {
-    Task<IReadOnlyList<BatchDto>> GetBatchesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<BatchDto>> GetBatchesAsync(string query, CancellationToken cancellationToken);
     Task<BatchDto> CreateBatchAsync(CreateBatchRequest request, int userId, CancellationToken cancellationToken);
     Task<BatchDto> UpdateBatchAsync(int batchId, UpdateBatchRequest request, int userId, CancellationToken cancellationToken);
     Task DeleteBatchAsync(int batchId, CancellationToken cancellationToken);

@@ -6,12 +6,14 @@ namespace Pharmacy.Infrastructure;
 
 public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts) : IInventoryService
 {
-    public async Task<IReadOnlyList<BatchDto>> GetBatchesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<BatchDto>> GetBatchesAsync(string query, CancellationToken cancellationToken)
     {
+        query = query.Trim();
         var batches = await db.MedicineBatches
             .Include(x => x.Medicine)
             .Include(x => x.Supplier)
             .Include(x => x.InventoryItem)
+            .Where(x => query == string.Empty || x.BatchNumber.Contains(query) || x.Medicine.Name.Contains(query))
             .OrderBy(x => x.ExpiryDate)
             .ToListAsync(cancellationToken);
 

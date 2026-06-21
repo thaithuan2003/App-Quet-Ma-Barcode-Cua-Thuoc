@@ -7,8 +7,11 @@ class InventoryService {
 
   final ApiClient _apiClient;
 
-  Future<List<Batch>> batches() async {
-    final response = await _apiClient.get('/inventory/batches') as List<dynamic>;
+  Future<List<Batch>> batches({String query = ''}) async {
+    final response = await _apiClient.get(
+      '/inventory/batches',
+      query: {'q': query},
+    ) as List<dynamic>;
     return response.map((item) => Batch.fromJson(item as Map<String, dynamic>)).toList();
   }
 

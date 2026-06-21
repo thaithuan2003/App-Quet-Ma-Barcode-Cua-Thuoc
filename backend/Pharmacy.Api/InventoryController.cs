@@ -10,9 +10,9 @@ namespace Pharmacy.Api;
 public sealed class InventoryController(IInventoryService inventory) : ControllerBase
 {
     [HttpGet("batches")]
-    public async Task<ActionResult<IReadOnlyList<BatchDto>>> Batches(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<BatchDto>>> Batches([FromQuery] string q = "", CancellationToken cancellationToken = default)
     {
-        return Ok(await inventory.GetBatchesAsync(cancellationToken));
+        return Ok(await inventory.GetBatchesAsync(q, cancellationToken));
     }
 
     [HttpPost("batches")]
