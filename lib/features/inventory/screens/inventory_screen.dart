@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
+import '../../../core/storage/token_storage.dart';
 import '../../../shared/widgets/app_error.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../medicine/models/medicine.dart';
@@ -21,15 +22,40 @@ class InventoryScreen extends StatefulWidget {
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+class _InventoryScreenState extends State<InventoryScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  final TokenStorage _tokenStorage = TokenStorage();
   late final InventoryService _service = InventoryService(widget.apiClient);
-  late final MedicineService _medicineService = MedicineService(widget.apiClient);
-  late final SupplierService _supplierService = SupplierService(widget.apiClient);
-  late final TabController _tabController = TabController(length: 2, vsync: this);
+  late final MedicineService _medicineService = MedicineService(
+    widget.apiClient,
+  );
+  late final SupplierService _supplierService = SupplierService(
+    widget.apiClient,
+  );
+  late final TabController _tabController = TabController(
+    length: 2,
+    vsync: this,
+  );
   late Future<List<Batch>> _batchesFuture = _service.batches();
-  late Future<List<InventoryTransaction>> _transactionsFuture = _loadImportHistory();
+  late Future<List<InventoryTransaction>> _transactionsFuture =
+      _loadImportHistory();
   String _query = '';
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final roles = await _tokenStorage.readRoles();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isAdmin = roles.contains('Admin'));
+  }
 
   @override
   void dispose() {
@@ -62,14 +88,21 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       builder: (context) => AlertDialog(
         title: const Text('Thông báo lỗi'),
         content: Text(message),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _showSuccess(String message) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openBatchForm([Batch? batch]) async {
@@ -80,43 +113,48 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         batch: batch,
         medicineService: _medicineService,
         supplierService: _supplierService,
-        onSave: ({
-          required medicineId,
-          required supplierId,
-          required batchNumber,
-          required manufactureDate,
-          required expiryDate,
-          required quantity,
-          required lowStockThreshold,
-        }) async {
-          if (batch == null) {
-            await _service.createBatch(
-              medicineId: medicineId,
-              supplierId: supplierId,
-              batchNumber: batchNumber,
-              manufactureDate: manufactureDate,
-              expiryDate: expiryDate,
-              quantity: quantity,
-              lowStockThreshold: lowStockThreshold,
-            );
-          } else {
-            await _service.updateBatch(
-              batchId: batch.id,
-              medicineId: medicineId,
-              supplierId: supplierId,
-              batchNumber: batchNumber,
-              manufactureDate: manufactureDate,
-              expiryDate: expiryDate,
-              quantity: quantity,
-              lowStockThreshold: lowStockThreshold,
-            );
-          }
-        },
+        onSave:
+            ({
+              required medicineId,
+              required supplierId,
+              required batchNumber,
+              required manufactureDate,
+              required expiryDate,
+              required quantity,
+              required lowStockThreshold,
+            }) async {
+              if (batch == null) {
+                await _service.createBatch(
+                  medicineId: medicineId,
+                  supplierId: supplierId,
+                  batchNumber: batchNumber,
+                  manufactureDate: manufactureDate,
+                  expiryDate: expiryDate,
+                  quantity: quantity,
+                  lowStockThreshold: lowStockThreshold,
+                );
+              } else {
+                await _service.updateBatch(
+                  batchId: batch.id,
+                  medicineId: medicineId,
+                  supplierId: supplierId,
+                  batchNumber: batchNumber,
+                  manufactureDate: manufactureDate,
+                  expiryDate: expiryDate,
+                  quantity: quantity,
+                  lowStockThreshold: lowStockThreshold,
+                );
+              }
+            },
       ),
     );
     if (saved == true) {
       _reload();
-      await _showSuccess(batch == null ? 'Đã thêm lô thuốc thành công.' : 'Đã cập nhật lô thuốc thành công.');
+      await _showSuccess(
+        batch == null
+            ? 'Đã thêm lô thuốc thành công.'
+            : 'Đã cập nhật lô thuốc thành công.',
+      );
     }
   }
 
@@ -127,8 +165,14 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         title: const Text('Xóa lô thuốc'),
         content: Text('Bạn muốn xóa lô ${batch.batchNumber}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xóa')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
         ],
       ),
     );
@@ -165,12 +209,14 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 onPressed: _search,
                 icon: const Icon(Icons.search),
               ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => _openBatchForm(),
-                icon: const Icon(Icons.add),
-                label: const Text('Thêm lô thuốc'),
-              ),
+              if (_isAdmin) ...[
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: () => _openBatchForm(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Thêm lô thuốc'),
+                ),
+              ],
             ],
           ),
         ),
@@ -187,6 +233,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             children: [
               _BatchList(
                 future: _batchesFuture,
+                isAdmin: _isAdmin,
                 onRetry: _reload,
                 onOpenDetails: _openBatchDetails,
                 onEdit: _openBatchForm,
@@ -212,6 +259,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 class _BatchList extends StatelessWidget {
   const _BatchList({
     required this.future,
+    required this.isAdmin,
     required this.onRetry,
     required this.onOpenDetails,
     required this.onEdit,
@@ -219,6 +267,7 @@ class _BatchList extends StatelessWidget {
   });
 
   final Future<List<Batch>> future;
+  final bool isAdmin;
   final VoidCallback onRetry;
   final ValueChanged<Batch> onOpenDetails;
   final ValueChanged<Batch> onEdit;
@@ -234,7 +283,12 @@ class _BatchList extends StatelessWidget {
         }
         if (snapshot.hasError) {
           final error = snapshot.error;
-          return AppError(message: error is ApiException ? error.message : 'Không tải được lô thuốc.', onRetry: onRetry);
+          return AppError(
+            message: error is ApiException
+                ? error.message
+                : 'Không tải được lô thuốc.',
+            onRetry: onRetry,
+          );
         }
         final items = snapshot.data ?? [];
         if (items.isEmpty) {
@@ -257,19 +311,27 @@ class _BatchList extends StatelessWidget {
                   ),
                   isThreeLine: true,
                   onTap: () => onOpenDetails(batch),
-                  trailing: PopupMenuButton<_BatchAction>(
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: _BatchAction.edit, child: Text('Sửa lô')),
-                      PopupMenuItem(value: _BatchAction.delete, child: Text('Xóa lô')),
-                    ],
-                    onSelected: (action) {
-                      if (action == _BatchAction.edit) {
-                        onEdit(batch);
-                      } else {
-                        onDelete(batch);
-                      }
-                    },
-                  ),
+                  trailing: isAdmin
+                      ? PopupMenuButton<_BatchAction>(
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: _BatchAction.edit,
+                              child: Text('Sửa lô'),
+                            ),
+                            PopupMenuItem(
+                              value: _BatchAction.delete,
+                              child: Text('Xóa lô'),
+                            ),
+                          ],
+                          onSelected: (action) {
+                            if (action == _BatchAction.edit) {
+                              onEdit(batch);
+                            } else {
+                              onDelete(batch);
+                            }
+                          },
+                        )
+                      : null,
                 ),
               );
             },
@@ -289,7 +351,12 @@ class _BatchDetailsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -297,18 +364,38 @@ class _BatchDetailsSheet extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('Chi tiết lô thuốc', style: Theme.of(context).textTheme.titleMedium)),
-                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                  Expanded(
+                    child: Text(
+                      'Chi tiết lô thuốc',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
               _BatchDetailRow(label: 'Tên thuốc', value: batch.medicineName),
               _BatchDetailRow(label: 'Số lô', value: batch.batchNumber),
-              _BatchDetailRow(label: 'Ngày sản xuất', value: batch.manufactureDate),
+              _BatchDetailRow(
+                label: 'Ngày sản xuất',
+                value: batch.manufactureDate,
+              ),
               _BatchDetailRow(label: 'Hạn sử dụng', value: batch.expiryDate),
-              _BatchDetailRow(label: 'Số lượng tồn', value: batch.quantity.toString()),
-              _BatchDetailRow(label: 'Ngưỡng tồn thấp', value: batch.lowStockThreshold.toString()),
-              _BatchDetailRow(label: 'Nhà cung ứng', value: batch.supplierName ?? 'Chưa chọn'),
+              _BatchDetailRow(
+                label: 'Số lượng tồn',
+                value: batch.quantity.toString(),
+              ),
+              _BatchDetailRow(
+                label: 'Ngưỡng tồn thấp',
+                value: batch.lowStockThreshold.toString(),
+              ),
+              _BatchDetailRow(
+                label: 'Nhà cung ứng',
+                value: batch.supplierName ?? 'Chưa chọn',
+              ),
             ],
           ),
         ),
@@ -332,7 +419,12 @@ class _BatchDetailRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 130,
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(value)),
@@ -358,7 +450,12 @@ class _ImportHistoryList extends StatelessWidget {
         }
         if (snapshot.hasError) {
           final error = snapshot.error;
-          return AppError(message: error is ApiException ? error.message : 'Không tải được lịch sử nhập kho.', onRetry: onRetry);
+          return AppError(
+            message: error is ApiException
+                ? error.message
+                : 'Không tải được lịch sử nhập kho.',
+            onRetry: onRetry,
+          );
         }
         final items = snapshot.data ?? [];
         if (items.isEmpty) {
@@ -375,7 +472,9 @@ class _ImportHistoryList extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.add_box_outlined),
                   title: Text(item.medicineName),
-                  subtitle: Text('Lô: ${item.batchNumber}\nSố lượng nhập: ${item.quantity}\nGhi chú: ${item.note}'),
+                  subtitle: Text(
+                    'Lô: ${item.batchNumber}\nSố lượng nhập: ${item.quantity}\nGhi chú: ${item.note}',
+                  ),
                   isThreeLine: true,
                 ),
               );
@@ -406,7 +505,8 @@ class _BatchFormSheet extends StatefulWidget {
     required String expiryDate,
     required int quantity,
     required int lowStockThreshold,
-  }) onSave;
+  })
+  onSave;
 
   @override
   State<_BatchFormSheet> createState() => _BatchFormSheetState();
@@ -432,10 +532,16 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
     _medicineId = batch?.medicineId;
     _supplierId = batch?.supplierId;
     _batchNumber = TextEditingController(text: batch?.batchNumber ?? '');
-    _manufactureDate = TextEditingController(text: batch?.manufactureDate ?? '2026-01-01');
-    _expiryDate = TextEditingController(text: batch?.expiryDate ?? '2027-01-01');
+    _manufactureDate = TextEditingController(
+      text: batch?.manufactureDate ?? '2026-01-01',
+    );
+    _expiryDate = TextEditingController(
+      text: batch?.expiryDate ?? '2027-01-01',
+    );
     _quantity = TextEditingController(text: batch?.quantity.toString() ?? '10');
-    _threshold = TextEditingController(text: batch?.lowStockThreshold.toString() ?? '10');
+    _threshold = TextEditingController(
+      text: batch?.lowStockThreshold.toString() ?? '10',
+    );
     _loadFuture = _loadOptions();
   }
 
@@ -471,12 +577,18 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
       builder: (context) => AlertDialog(
         title: const Text('Thông báo lỗi'),
         content: Text(message),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
       ),
     );
   }
 
-  bool _isValidDate(String value) => RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value);
+  bool _isValidDate(String value) =>
+      RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value);
 
   Future<void> _save() async {
     final medicineId = _medicineId;
@@ -496,7 +608,8 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
       await _showError('Số lô không được để trống.');
       return;
     }
-    if (!_isValidDate(_manufactureDate.text.trim()) || !_isValidDate(_expiryDate.text.trim())) {
+    if (!_isValidDate(_manufactureDate.text.trim()) ||
+        !_isValidDate(_expiryDate.text.trim())) {
       await _showError('Ngày sản xuất và hạn sử dụng phải có dạng yyyy-MM-dd.');
       return;
     }
@@ -533,12 +646,20 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
         child: FutureBuilder<void>(
           future: _loadFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator()));
+              return const SizedBox(
+                height: 180,
+                child: Center(child: CircularProgressIndicator()),
+              );
             }
             if (snapshot.hasError) {
               return Column(
@@ -546,7 +667,10 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
                 children: [
                   const Text('Không tải được dữ liệu thuốc hoặc nhà cung ứng.'),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: () => Navigator.pop(context, false), child: const Text('Đóng')),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Đóng'),
+                  ),
                 ],
               );
             }
@@ -554,42 +678,98 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(widget.batch == null ? 'Thêm lô thuốc' : 'Sửa lô thuốc', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    widget.batch == null ? 'Thêm lô thuốc' : 'Sửa lô thuốc',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    value: _medicines.any((item) => item.id == _medicineId) ? _medicineId : null,
+                    value: _medicines.any((item) => item.id == _medicineId)
+                        ? _medicineId
+                        : null,
                     decoration: const InputDecoration(labelText: 'Thuốc'),
                     items: [
                       for (final medicine in _medicines)
-                        DropdownMenuItem(value: medicine.id, child: Text('${medicine.name} - ${medicine.strength}')),
+                        DropdownMenuItem(
+                          value: medicine.id,
+                          child: Text(
+                            '${medicine.name} - ${medicine.strength}',
+                          ),
+                        ),
                     ],
-                    onChanged: _saving ? null : (value) => setState(() => _medicineId = value),
+                    onChanged: _saving
+                        ? null
+                        : (value) => setState(() => _medicineId = value),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
-                    value: _suppliers.any((item) => item.id == _supplierId) ? _supplierId : null,
-                    decoration: const InputDecoration(labelText: 'Nhà cung ứng'),
+                    value: _suppliers.any((item) => item.id == _supplierId)
+                        ? _supplierId
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Nhà cung ứng',
+                    ),
                     items: [
-                      for (final supplier in _suppliers) DropdownMenuItem(value: supplier.id, child: Text(supplier.name)),
+                      for (final supplier in _suppliers)
+                        DropdownMenuItem(
+                          value: supplier.id,
+                          child: Text(supplier.name),
+                        ),
                     ],
-                    onChanged: _saving ? null : (value) => setState(() => _supplierId = value),
+                    onChanged: _saving
+                        ? null
+                        : (value) => setState(() => _supplierId = value),
                   ),
                   const SizedBox(height: 12),
-                  AppTextField(controller: _batchNumber, enabled: !_saving, labelText: 'Số lô'),
+                  AppTextField(
+                    controller: _batchNumber,
+                    enabled: !_saving,
+                    labelText: 'Số lô',
+                  ),
                   const SizedBox(height: 12),
-                  AppTextField(controller: _manufactureDate, enabled: !_saving, labelText: 'Ngày sản xuất yyyy-MM-dd'),
+                  AppTextField(
+                    controller: _manufactureDate,
+                    enabled: !_saving,
+                    labelText: 'Ngày sản xuất yyyy-MM-dd',
+                  ),
                   const SizedBox(height: 12),
-                  AppTextField(controller: _expiryDate, enabled: !_saving, labelText: 'Hạn sử dụng yyyy-MM-dd'),
+                  AppTextField(
+                    controller: _expiryDate,
+                    enabled: !_saving,
+                    labelText: 'Hạn sử dụng yyyy-MM-dd',
+                  ),
                   const SizedBox(height: 12),
-                  AppTextField(controller: _quantity, enabled: !_saving, keyboardType: TextInputType.number, labelText: 'Số lượng tồn'),
+                  AppTextField(
+                    controller: _quantity,
+                    enabled: !_saving,
+                    keyboardType: TextInputType.number,
+                    labelText: 'Số lượng tồn',
+                  ),
                   const SizedBox(height: 12),
-                  AppTextField(controller: _threshold, enabled: !_saving, keyboardType: TextInputType.number, labelText: 'Ngưỡng tồn thấp'),
+                  AppTextField(
+                    controller: _threshold,
+                    enabled: !_saving,
+                    keyboardType: TextInputType.number,
+                    labelText: 'Ngưỡng tồn thấp',
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: OutlinedButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Thoát'))),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _saving
+                              ? null
+                              : () => Navigator.pop(context, false),
+                          child: const Text('Thoát'),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: FilledButton(onPressed: _saving ? null : _save, child: const Text('Lưu'))),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _saving ? null : _save,
+                          child: const Text('Lưu'),
+                        ),
+                      ),
                     ],
                   ),
                 ],

@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
+import '../../../core/storage/token_storage.dart';
 import '../../../shared/widgets/app_error.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../medicine/models/medicine.dart';
@@ -19,9 +20,25 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TokenStorage _tokenStorage = TokenStorage();
   late final MedicineService _service = MedicineService(widget.apiClient);
   late Future<List<Medicine>> _future = _service.search('');
   String _query = '';
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final roles = await _tokenStorage.readRoles();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isAdmin = roles.contains('Admin'));
+  }
 
   @override
   void dispose() {
@@ -48,7 +65,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
         title: Text(title),
         content: Text(message),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
         ],
       ),
     );
@@ -60,52 +80,58 @@ class _ReportsScreenState extends State<ReportsScreen> {
       isScrollControlled: true,
       builder: (context) => _MedicineFormSheet(
         medicine: medicine,
-        onSave: ({
-          required name,
-          required barcode,
-          required activeIngredient,
-          required manufacturer,
-          required dosageForm,
-          required strength,
-          required usageInstruction,
-          required warningNote,
-          required salePrice,
-          required requiresPrescription,
-        }) async {
-          if (medicine == null) {
-            await _service.createMedicine(
-              name: name,
-              barcode: barcode,
-              activeIngredient: activeIngredient,
-              manufacturer: manufacturer,
-              dosageForm: dosageForm,
-              strength: strength,
-              usageInstruction: usageInstruction,
-              warningNote: warningNote,
-              salePrice: salePrice,
-              requiresPrescription: requiresPrescription,
-            );
-          } else {
-            await _service.updateMedicine(
-              id: medicine.id,
-              name: name,
-              barcode: barcode,
-              activeIngredient: activeIngredient,
-              manufacturer: manufacturer,
-              dosageForm: dosageForm,
-              strength: strength,
-              usageInstruction: usageInstruction,
-              warningNote: warningNote,
-              salePrice: salePrice,
-              requiresPrescription: requiresPrescription,
-            );
-          }
-        },
+        onSave:
+            ({
+              required name,
+              required barcode,
+              required activeIngredient,
+              required manufacturer,
+              required dosageForm,
+              required strength,
+              required usageInstruction,
+              required warningNote,
+              required salePrice,
+              required requiresPrescription,
+            }) async {
+              if (medicine == null) {
+                await _service.createMedicine(
+                  name: name,
+                  barcode: barcode,
+                  activeIngredient: activeIngredient,
+                  manufacturer: manufacturer,
+                  dosageForm: dosageForm,
+                  strength: strength,
+                  usageInstruction: usageInstruction,
+                  warningNote: warningNote,
+                  salePrice: salePrice,
+                  requiresPrescription: requiresPrescription,
+                );
+              } else {
+                await _service.updateMedicine(
+                  id: medicine.id,
+                  name: name,
+                  barcode: barcode,
+                  activeIngredient: activeIngredient,
+                  manufacturer: manufacturer,
+                  dosageForm: dosageForm,
+                  strength: strength,
+                  usageInstruction: usageInstruction,
+                  warningNote: warningNote,
+                  salePrice: salePrice,
+                  requiresPrescription: requiresPrescription,
+                );
+              }
+            },
       ),
     );
     if (saved == true) {
       _reload();
-      await _showMessage('Thành công', medicine == null ? 'Đã thêm thuốc thành công.' : 'Đã cập nhật thuốc thành công.');
+      await _showMessage(
+        'Thành công',
+        medicine == null
+            ? 'Đã thêm thuốc thành công.'
+            : 'Đã cập nhật thuốc thành công.',
+      );
     }
   }
 
@@ -116,8 +142,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
         title: const Text('Xóa thuốc'),
         content: Text('Bạn muốn xóa thuốc ${medicine.name}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xóa')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
         ],
       ),
     );
@@ -156,12 +188,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 onPressed: _search,
                 icon: const Icon(Icons.search),
               ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => _openForm(),
-                icon: const Icon(Icons.add),
-                label: const Text('Thêm'),
-              ),
+              if (_isAdmin) ...[
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: () => _openForm(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Thêm'),
+                ),
+              ],
             ],
           ),
         ),
@@ -174,7 +208,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
               }
               if (snapshot.hasError) {
                 final error = snapshot.error;
-                return AppError(message: error is ApiException ? error.message : 'Không tải được danh sách thuốc.', onRetry: _reload);
+                return AppError(
+                  message: error is ApiException
+                      ? error.message
+                      : 'Không tải được danh sách thuốc.',
+                  onRetry: _reload,
+                );
               }
               final medicines = snapshot.data ?? [];
               if (medicines.isEmpty) {
@@ -188,19 +227,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   return Card(
                     child: ListTile(
                       title: Text(medicine.name),
-                      subtitle: Text('Tồn: ${medicine.totalQuantity} - Giá: ${medicine.salePrice.toStringAsFixed(0)} VND\n${medicine.barcode}'),
+                      subtitle: Text(
+                        'Tồn: ${medicine.totalQuantity} - Giá: ${medicine.salePrice.toStringAsFixed(0)} VND\n${medicine.barcode}',
+                      ),
                       isThreeLine: true,
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => MedicineDetailScreen(medicine: medicine, service: _service)),
+                        MaterialPageRoute(
+                          builder: (_) => MedicineDetailScreen(
+                            medicine: medicine,
+                            service: _service,
+                          ),
+                        ),
                       ),
-                      trailing: Wrap(
-                        spacing: 4,
-                        children: [
-                          IconButton(tooltip: 'Sửa', onPressed: () => _openForm(medicine), icon: const Icon(Icons.edit_outlined)),
-                          IconButton(tooltip: 'Xóa', onPressed: () => _delete(medicine), icon: const Icon(Icons.delete_outline)),
-                        ],
-                      ),
+                      trailing: _isAdmin
+                          ? Wrap(
+                              spacing: 4,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Sửa',
+                                  onPressed: () => _openForm(medicine),
+                                  icon: const Icon(Icons.edit_outlined),
+                                ),
+                                IconButton(
+                                  tooltip: 'Xóa',
+                                  onPressed: () => _delete(medicine),
+                                  icon: const Icon(Icons.delete_outline),
+                                ),
+                              ],
+                            )
+                          : null,
                     ),
                   );
                 },
@@ -228,7 +284,8 @@ class _MedicineFormSheet extends StatefulWidget {
     required String warningNote,
     required num salePrice,
     required bool requiresPrescription,
-  }) onSave;
+  })
+  onSave;
 
   @override
   State<_MedicineFormSheet> createState() => _MedicineFormSheetState();
@@ -253,13 +310,19 @@ class _MedicineFormSheetState extends State<_MedicineFormSheet> {
     final medicine = widget.medicine;
     _name = TextEditingController(text: medicine?.name ?? '');
     _barcode = TextEditingController(text: medicine?.barcode ?? '');
-    _activeIngredient = TextEditingController(text: medicine?.activeIngredient ?? '');
+    _activeIngredient = TextEditingController(
+      text: medicine?.activeIngredient ?? '',
+    );
     _manufacturer = TextEditingController(text: medicine?.manufacturer ?? '');
     _dosageForm = TextEditingController(text: medicine?.dosageForm ?? '');
     _strength = TextEditingController(text: medicine?.strength ?? '');
-    _usageInstruction = TextEditingController(text: medicine?.usageInstruction ?? '');
+    _usageInstruction = TextEditingController(
+      text: medicine?.usageInstruction ?? '',
+    );
     _warningNote = TextEditingController(text: medicine?.warningNote ?? '');
-    _salePrice = TextEditingController(text: medicine?.salePrice.toStringAsFixed(0) ?? '0');
+    _salePrice = TextEditingController(
+      text: medicine?.salePrice.toStringAsFixed(0) ?? '0',
+    );
     _requiresPrescription = medicine?.requiresPrescription ?? false;
   }
 
@@ -283,7 +346,12 @@ class _MedicineFormSheetState extends State<_MedicineFormSheet> {
       builder: (context) => AlertDialog(
         title: const Text('Thông báo lỗi'),
         content: Text(message),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
       ),
     );
   }
@@ -329,38 +397,79 @@ class _MedicineFormSheetState extends State<_MedicineFormSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  Expanded(child: Text(widget.medicine == null ? 'Thêm thuốc' : 'Sửa thuốc', style: Theme.of(context).textTheme.titleMedium)),
-                  IconButton(onPressed: _saving ? null : () => Navigator.pop(context, false), icon: const Icon(Icons.close)),
+                  Expanded(
+                    child: Text(
+                      widget.medicine == null ? 'Thêm thuốc' : 'Sửa thuốc',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _saving
+                        ? null
+                        : () => Navigator.pop(context, false),
+                    icon: const Icon(Icons.close),
+                  ),
                 ],
               ),
               AppTextField(controller: _name, labelText: 'Tên thuốc'),
               AppTextField(controller: _barcode, labelText: 'Mã vạch'),
-              AppTextField(controller: _salePrice, keyboardType: TextInputType.number, labelText: 'Đơn giá bán'),
-              AppTextField(controller: _activeIngredient, labelText: 'Hoạt chất'),
-              AppTextField(controller: _manufacturer, labelText: 'Nhà sản xuất'),
+              AppTextField(
+                controller: _salePrice,
+                keyboardType: TextInputType.number,
+                labelText: 'Đơn giá bán',
+              ),
+              AppTextField(
+                controller: _activeIngredient,
+                labelText: 'Hoạt chất',
+              ),
+              AppTextField(
+                controller: _manufacturer,
+                labelText: 'Nhà sản xuất',
+              ),
               AppTextField(controller: _dosageForm, labelText: 'Dạng bào chế'),
               AppTextField(controller: _strength, labelText: 'Hàm lượng'),
-              AppTextField(controller: _usageInstruction, labelText: 'Hướng dẫn sử dụng'),
+              AppTextField(
+                controller: _usageInstruction,
+                labelText: 'Hướng dẫn sử dụng',
+              ),
               AppTextField(controller: _warningNote, labelText: 'Cảnh báo'),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _requiresPrescription,
-                onChanged: (value) => setState(() => _requiresPrescription = value),
+                onChanged: (value) =>
+                    setState(() => _requiresPrescription = value),
                 title: const Text('Thuốc kê đơn'),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Thoát'))),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _saving
+                          ? null
+                          : () => Navigator.pop(context, false),
+                      child: const Text('Thoát'),
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: FilledButton(onPressed: _saving ? null : _save, child: const Text('Lưu'))),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: _saving ? null : _save,
+                      child: const Text('Lưu'),
+                    ),
+                  ),
                 ],
               ),
             ],
