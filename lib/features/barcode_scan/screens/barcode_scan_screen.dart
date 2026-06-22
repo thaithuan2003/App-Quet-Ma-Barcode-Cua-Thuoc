@@ -28,7 +28,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   InteractionResult? _interactionResult;
 
   Future<void> _handleBarcode(String? value) async {
-    if (value == null || value.isEmpty || _busy || _barcodes.contains(value)) {
+    if (value == null || value.isEmpty || _busy) {
       return;
     }
     setState(() {
