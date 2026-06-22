@@ -27,8 +27,22 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   String? _message;
   InteractionResult? _interactionResult;
 
+  void _showScanMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _handleBarcode(String? value) async {
-    if (value == null || value.isEmpty || _busy) {
+    if (value == null || value.isEmpty) {
+      _showScanMessage('Không đọc được mã vạch. Vui lòng thử lại.');
+      return;
+    }
+    if (_busy) {
+      _showScanMessage('Hệ thống đang xử lý mã trước đó. Vui lòng chờ.');
       return;
     }
     setState(() {
