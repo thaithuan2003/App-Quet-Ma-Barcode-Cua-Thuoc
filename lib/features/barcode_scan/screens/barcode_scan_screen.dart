@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -23,9 +25,22 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   late final MedicineService _medicineService = MedicineService(widget.apiClient);
   final List<ScanResult> _results = [];
   final Set<String> _barcodes = {};
+  Timer? _scanTimeoutTimer;
   bool _busy = false;
   String? _message;
   InteractionResult? _interactionResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _restartScanTimeout();
+  }
+
+  @override
+  void dispose() {
+    _scanTimeoutTimer?.cancel();
+    super.dispose();
+  }
 
   void _showScanMessage(String message) {
     if (!mounted) {
@@ -36,9 +51,21 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _restartScanTimeout() {
+    _scanTimeoutTimer?.cancel();
+    _scanTimeoutTimer = Timer(const Duration(seconds: 10), () {
+      if (!mounted || _busy) {
+        return;
+      }
+      _showScanMessage('Chưa đọc được mã vạch. Vui lòng đưa mã vào khung camera hoặc thử lại.');
+      _restartScanTimeout();
+    });
+  }
+
   Future<void> _handleBarcode(String? value) async {
     if (value == null || value.isEmpty) {
       _showScanMessage('Không đọc được mã vạch. Vui lòng thử lại.');
+      _restartScanTimeout();
       return;
     }
     if (_busy) {
@@ -58,6 +85,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     } finally {
       if (mounted) {
         setState(() => _busy = false);
+        _restartScanTimeout();
       }
     }
   }
