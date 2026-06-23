@@ -16,14 +16,11 @@ public sealed class MedicineService(PharmacyDbContext db) : IMedicineService
     {
         query = query.Trim();
         var medicines = await db.Medicines
-            .Include(x => x.Aliases)
             .Where(x => query == string.Empty
                 || x.Name.Contains(query)
                 || x.Barcode.Contains(query)
-                || x.ActiveIngredient.Contains(query)
-                || x.Aliases.Any(a => a.Alias.Contains(query)))
+                || x.ActiveIngredient.Contains(query))
             .OrderBy(x => x.Name)
-            .Take(50)
             .ToListAsync(cancellationToken);
 
         var result = new List<MedicineDto>();

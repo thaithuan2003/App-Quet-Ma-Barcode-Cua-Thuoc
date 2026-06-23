@@ -20,12 +20,15 @@ class MedicineSearchScreen extends StatefulWidget {
 class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
   final _queryController = TextEditingController();
   late final MedicineService _service = MedicineService(widget.apiClient);
-  Future<List<Medicine>>? _future;
+  List<Medicine> _items = [];
+  bool _loading = true;
+  Object? _error;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _future = _service.search('');
+    _loadMedicines();
   }
 
   @override
@@ -34,8 +37,35 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
     super.dispose();
   }
 
-  void _search() {
-    setState(() => _future = _service.search(_queryController.text.trim()));
+  Future<void> _loadMedicines([String query = '']) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final items = await _service.search(query);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = error;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _search() async {
+    _query = _queryController.text.trim();
+    await _loadMedicines(_query);
   }
 
   @override
@@ -51,6 +81,7 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
                   controller: _queryController,
                   labelText: 'Tên thuốc, hoạt chất hoặc mã vạch',
                   prefixIcon: const Icon(Icons.search),
+                  textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _search(),
                 ),
               ),
@@ -63,59 +94,52 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
             ],
           ),
         ),
-        Expanded(
-          child: FutureBuilder<List<Medicine>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                final error = snapshot.error;
-                return AppError(
-                  message: error is ApiException
-                      ? error.message
-                      : 'Không tải được danh sách thuốc.',
-                  onRetry: _search,
-                );
-              }
-              final items = snapshot.data ?? [];
-              if (items.isEmpty) {
-                return const Center(
-                  child: Text('Không tìm thấy thuốc phù hợp.'),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(item.name),
-                      subtitle: Text(
-                        '${item.barcode} - Tồn: ${item.totalQuantity}',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => MedicineDetailScreen(
-                              medicine: item,
-                              service: _service,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
+        Expanded(child: _buildResult()),
+      ],
+    );
+  }
+
+  Widget _buildResult() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final error = _error;
+    if (error != null) {
+      return AppError(
+        message: error is ApiException
+            ? error.message
+            : 'Không tải được danh sách thuốc.',
+        onRetry: () => _loadMedicines(_query),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return const Center(child: Text('Không tìm thấy thuốc phù hợp.'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      itemCount: _items.length,
+      itemBuilder: (context, index) {
+        final item = _items[index];
+        return Card(
+          child: ListTile(
+            title: Text(item.name),
+            subtitle: Text('${item.barcode} - Tồn: ${item.totalQuantity}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      MedicineDetailScreen(medicine: item, service: _service),
+                ),
               );
             },
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

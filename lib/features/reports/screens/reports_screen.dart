@@ -22,13 +22,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final TextEditingController _searchController = TextEditingController();
   final TokenStorage _tokenStorage = TokenStorage();
   late final MedicineService _service = MedicineService(widget.apiClient);
-  late Future<List<Medicine>> _future = _service.search('');
+  List<Medicine> _medicines = [];
   String _query = '';
+  bool _loading = true;
+  Object? _error;
   bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
+    _loadMedicines();
     _loadRole();
   }
 
@@ -46,13 +49,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
     super.dispose();
   }
 
-  void _reload() {
-    setState(() => _future = _service.search(_query));
+  Future<void> _loadMedicines([String query = '']) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final medicines = await _service.search(query);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _medicines = medicines;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = error;
+        _loading = false;
+      });
+    }
   }
 
-  void _search() {
+  Future<void> _reload() async {
+    await _loadMedicines(_query);
+  }
+
+  Future<void> _search() async {
     _query = _searchController.text.trim();
-    _reload();
+    await _reload();
   }
 
   Future<void> _showMessage(String title, String message) async {
@@ -124,8 +153,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
             },
       ),
     );
+
     if (saved == true) {
-      _reload();
+      await _reload();
       await _showMessage(
         'Thành công',
         medicine == null
@@ -153,12 +183,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ],
       ),
     );
+
     if (confirm != true) {
       return;
     }
+
     try {
       await _service.deleteMedicine(medicine.id);
-      _reload();
+      await _reload();
       await _showMessage('Thành công', 'Đã xóa thuốc thành công.');
     } on ApiException catch (error) {
       await _showMessage('Thông báo lỗi', error.message);
@@ -199,72 +231,69 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ],
           ),
         ),
-        Expanded(
-          child: FutureBuilder<List<Medicine>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                final error = snapshot.error;
-                return AppError(
-                  message: error is ApiException
-                      ? error.message
-                      : 'Không tải được danh sách thuốc.',
-                  onRetry: _reload,
-                );
-              }
-              final medicines = snapshot.data ?? [];
-              if (medicines.isEmpty) {
-                return const Center(child: Text('Không có thuốc phù hợp.'));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                itemCount: medicines.length,
-                itemBuilder: (context, index) {
-                  final medicine = medicines[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(medicine.name),
-                      subtitle: Text(
-                        'Tồn: ${medicine.totalQuantity} - Giá: ${medicine.salePrice.toStringAsFixed(0)} VND\n${medicine.barcode}',
-                      ),
-                      isThreeLine: true,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MedicineDetailScreen(
-                            medicine: medicine,
-                            service: _service,
-                          ),
-                        ),
-                      ),
-                      trailing: _isAdmin
-                          ? Wrap(
-                              spacing: 4,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Sửa',
-                                  onPressed: () => _openForm(medicine),
-                                  icon: const Icon(Icons.edit_outlined),
-                                ),
-                                IconButton(
-                                  tooltip: 'Xóa',
-                                  onPressed: () => _delete(medicine),
-                                  icon: const Icon(Icons.delete_outline),
-                                ),
-                              ],
-                            )
-                          : null,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
+        Expanded(child: _buildMedicineList()),
       ],
+    );
+  }
+
+  Widget _buildMedicineList() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final error = _error;
+    if (error != null) {
+      return AppError(
+        message: error is ApiException
+            ? error.message
+            : 'Không tải được danh sách thuốc.',
+        onRetry: _reload,
+      );
+    }
+
+    if (_medicines.isEmpty) {
+      return const Center(child: Text('Không có thuốc phù hợp.'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      itemCount: _medicines.length,
+      itemBuilder: (context, index) {
+        final medicine = _medicines[index];
+        return Card(
+          child: ListTile(
+            title: Text(medicine.name),
+            subtitle: Text(
+              'Tồn: ${medicine.totalQuantity} - Giá: ${medicine.salePrice.toStringAsFixed(0)} VND\n${medicine.barcode}',
+            ),
+            isThreeLine: true,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    MedicineDetailScreen(medicine: medicine, service: _service),
+              ),
+            ),
+            trailing: _isAdmin
+                ? Wrap(
+                    spacing: 4,
+                    children: [
+                      IconButton(
+                        tooltip: 'Sửa',
+                        onPressed: () => _openForm(medicine),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
+                      IconButton(
+                        tooltip: 'Xóa',
+                        onPressed: () => _delete(medicine),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ],
+                  )
+                : null,
+          ),
+        );
+      },
     );
   }
 }
@@ -370,6 +399,7 @@ class _MedicineFormSheetState extends State<_MedicineFormSheet> {
       await _showError('Đơn giá bán không hợp lệ.');
       return;
     }
+
     setState(() => _saving = true);
     try {
       await widget.onSave(
@@ -384,7 +414,9 @@ class _MedicineFormSheetState extends State<_MedicineFormSheet> {
         salePrice: price,
         requiresPrescription: _requiresPrescription,
       );
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     } on ApiException catch (error) {
       if (mounted) {
         await _showError(error.message);
