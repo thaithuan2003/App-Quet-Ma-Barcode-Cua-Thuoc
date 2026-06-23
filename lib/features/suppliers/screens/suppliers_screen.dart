@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
@@ -8,9 +8,14 @@ import '../models/supplier.dart';
 import '../services/supplier_service.dart';
 
 class SuppliersScreen extends StatefulWidget {
-  const SuppliersScreen({super.key, required this.apiClient});
+  const SuppliersScreen({
+    super.key,
+    required this.apiClient,
+    required this.refreshVersion,
+  });
 
   final ApiClient apiClient;
+  final int refreshVersion;
 
   @override
   State<SuppliersScreen> createState() => _SuppliersScreenState();
@@ -20,8 +25,18 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   late final SupplierService _service = SupplierService(widget.apiClient);
   late Future<List<Supplier>> _future = _service.suppliers();
 
-  void _reload() {
-    setState(() => _future = _service.suppliers());
+  @override
+  void didUpdateWidget(covariant SuppliersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshVersion != oldWidget.refreshVersion) {
+      setState(() => _future = _service.suppliers());
+    }
+  }
+
+  Future<void> _reload() async {
+    final future = _service.suppliers();
+    setState(() => _future = future);
+    await future;
   }
 
   Future<void> _showMessage(String title, String message) async {
@@ -31,7 +46,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(message),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
       ),
     );
   }
@@ -44,16 +64,30 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         supplier: supplier,
         onSave: ({required name, required phone, required address}) async {
           if (supplier == null) {
-            await _service.createSupplier(name: name, phone: phone, address: address);
+            await _service.createSupplier(
+              name: name,
+              phone: phone,
+              address: address,
+            );
           } else {
-            await _service.updateSupplier(id: supplier.id, name: name, phone: phone, address: address);
+            await _service.updateSupplier(
+              id: supplier.id,
+              name: name,
+              phone: phone,
+              address: address,
+            );
           }
         },
       ),
     );
     if (saved == true) {
-      _reload();
-      await _showMessage('Thành công', supplier == null ? 'Đã thêm nhà cung ứng.' : 'Đã cập nhật nhà cung ứng.');
+      await _reload();
+      await _showMessage(
+        'Thành công',
+        supplier == null
+            ? 'Đã thêm nhà cung ứng.'
+            : 'Đã cập nhật nhà cung ứng.',
+      );
     }
   }
 
@@ -64,15 +98,21 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         title: const Text('Xóa nhà cung ứng'),
         content: Text('Bạn muốn xóa ${supplier.name}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xóa')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa'),
+          ),
         ],
       ),
     );
     if (confirmed != true) return;
     try {
       await _service.deleteSupplier(supplier.id);
-      _reload();
+      await _reload();
       await _showMessage('Thành công', 'Đã xóa nhà cung ứng.');
     } on ApiException catch (error) {
       await _showMessage('Thông báo lỗi', error.message);
@@ -87,7 +127,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           padding: const EdgeInsets.all(12),
           child: Align(
             alignment: Alignment.centerRight,
-            child: FilledButton.icon(onPressed: () => _openForm(), icon: const Icon(Icons.add), label: const Text('Thêm nhà cung ứng')),
+            child: FilledButton.icon(
+              onPressed: () => _openForm(),
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm nhà cung ứng'),
+            ),
           ),
         ),
         Expanded(
@@ -99,32 +143,58 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               }
               if (snapshot.hasError) {
                 final error = snapshot.error;
-                return AppError(message: error is ApiException ? error.message : 'Không tải được nhà cung ứng.', onRetry: _reload);
+                return AppError(
+                  message: error is ApiException
+                      ? error.message
+                      : 'Không tải được nhà cung ứng.',
+                  onRetry: _reload,
+                );
               }
               final suppliers = snapshot.data ?? [];
               if (suppliers.isEmpty) {
-                return const Center(child: Text('Chưa có nhà cung ứng.'));
+                return RefreshIndicator(
+                  onRefresh: _reload,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 160),
+                      Center(child: Text('Chưa có nhà cung ứng.')),
+                    ],
+                  ),
+                );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                itemCount: suppliers.length,
-                itemBuilder: (context, index) {
-                  final supplier = suppliers[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(supplier.name),
-                      subtitle: Text('${supplier.phone}\n${supplier.address}'),
-                      isThreeLine: true,
-                      trailing: Wrap(
-                        spacing: 4,
-                        children: [
-                          IconButton(onPressed: () => _openForm(supplier), icon: const Icon(Icons.edit_outlined)),
-                          IconButton(onPressed: () => _delete(supplier), icon: const Icon(Icons.delete_outline)),
-                        ],
+              return RefreshIndicator(
+                onRefresh: _reload,
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  itemCount: suppliers.length,
+                  itemBuilder: (context, index) {
+                    final supplier = suppliers[index];
+                    return Card(
+                      child: ListTile(
+                        title: Text(supplier.name),
+                        subtitle: Text(
+                          '${supplier.phone}\n${supplier.address}',
+                        ),
+                        isThreeLine: true,
+                        trailing: Wrap(
+                          spacing: 4,
+                          children: [
+                            IconButton(
+                              onPressed: () => _openForm(supplier),
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
+                            IconButton(
+                              onPressed: () => _delete(supplier),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -138,7 +208,12 @@ class _SupplierFormSheet extends StatefulWidget {
   const _SupplierFormSheet({required this.supplier, required this.onSave});
 
   final Supplier? supplier;
-  final Future<void> Function({required String name, required String phone, required String address}) onSave;
+  final Future<void> Function({
+    required String name,
+    required String phone,
+    required String address,
+  })
+  onSave;
 
   @override
   State<_SupplierFormSheet> createState() => _SupplierFormSheetState();
@@ -172,7 +247,12 @@ class _SupplierFormSheetState extends State<_SupplierFormSheet> {
       builder: (context) => AlertDialog(
         title: const Text('Thông báo lỗi'),
         content: Text(message),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
       ),
     );
   }
@@ -184,7 +264,11 @@ class _SupplierFormSheetState extends State<_SupplierFormSheet> {
     }
     setState(() => _saving = true);
     try {
-      await widget.onSave(name: _name.text.trim(), phone: _phone.text.trim(), address: _address.text.trim());
+      await widget.onSave(
+        name: _name.text.trim(),
+        phone: _phone.text.trim(),
+        address: _address.text.trim(),
+      );
       if (mounted) Navigator.pop(context, true);
     } on ApiException catch (error) {
       if (mounted) {
@@ -198,23 +282,49 @@ class _SupplierFormSheetState extends State<_SupplierFormSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(widget.supplier == null ? 'Thêm nhà cung ứng' : 'Sửa nhà cung ứng', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              widget.supplier == null
+                  ? 'Thêm nhà cung ứng'
+                  : 'Sửa nhà cung ứng',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             AppTextField(controller: _name, labelText: 'Tên nhà cung ứng'),
             const SizedBox(height: 12),
-            AppTextField(controller: _phone, keyboardType: TextInputType.phone, labelText: 'Số điện thoại'),
+            AppTextField(
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              labelText: 'Số điện thoại',
+            ),
             const SizedBox(height: 12),
             AppTextField(controller: _address, labelText: 'Địa chỉ'),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: OutlinedButton(onPressed: _saving ? null : () => Navigator.pop(context, false), child: const Text('Thoát'))),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _saving
+                        ? null
+                        : () => Navigator.pop(context, false),
+                    child: const Text('Thoát'),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: FilledButton(onPressed: _saving ? null : _save, child: const Text('Lưu'))),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: _saving ? null : _save,
+                    child: const Text('Lưu'),
+                  ),
+                ),
               ],
             ),
           ],

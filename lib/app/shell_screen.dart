@@ -30,23 +30,67 @@ class ShellScreen extends StatefulWidget {
 
 class _ShellScreenState extends State<ShellScreen> {
   int _index = 0;
+  int _supplierRefreshVersion = 0;
 
-  late final _pages = _buildPages();
+  late List<_Page> _pages = _buildPages();
 
   List<_Page> _buildPages() {
     return [
-      _Page('Quét mã', Icons.qr_code_scanner, BarcodeScanScreen(apiClient: widget.apiClient)),
-      _Page('Tư vấn', Icons.support_agent_outlined, ConsultationScreen(apiClient: widget.apiClient)),
-      _Page('Tìm thuốc', Icons.search, MedicineSearchScreen(apiClient: widget.apiClient)),
-      _Page('Kho và lô', Icons.inventory_2_outlined, InventoryScreen(apiClient: widget.apiClient)),
-      _Page('Lịch sử quét', Icons.history, HistoryScreen(apiClient: widget.apiClient)),
-      _Page('Xác thực', Icons.verified_user_outlined, VerificationScreen(apiClient: widget.apiClient)),
-      _Page('Cảnh báo', Icons.warning_amber, AlertsScreen(apiClient: widget.apiClient)),
-      _Page('Danh sách thuốc', Icons.medication_outlined, ReportsScreen(apiClient: widget.apiClient)),
+      _Page(
+        'Quét mã',
+        Icons.qr_code_scanner,
+        BarcodeScanScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Tư vấn',
+        Icons.support_agent_outlined,
+        ConsultationScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Tìm thuốc',
+        Icons.search,
+        MedicineSearchScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Kho và lô',
+        Icons.inventory_2_outlined,
+        InventoryScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Lịch sử quét',
+        Icons.history,
+        HistoryScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Xác thực',
+        Icons.verified_user_outlined,
+        VerificationScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Cảnh báo',
+        Icons.warning_amber,
+        AlertsScreen(apiClient: widget.apiClient),
+      ),
+      _Page(
+        'Danh sách thuốc',
+        Icons.medication_outlined,
+        ReportsScreen(apiClient: widget.apiClient),
+      ),
       if (widget.roles.contains('Admin'))
-        _Page('Nhà cung ứng', Icons.local_shipping_outlined, SuppliersScreen(apiClient: widget.apiClient)),
+        _Page(
+          'Nhà cung ứng',
+          Icons.local_shipping_outlined,
+          SuppliersScreen(
+            apiClient: widget.apiClient,
+            refreshVersion: _supplierRefreshVersion,
+          ),
+        ),
       if (widget.roles.contains('Admin'))
-        _Page('Quản trị', Icons.admin_panel_settings_outlined, AdminScreen(apiClient: widget.apiClient)),
+        _Page(
+          'Quản trị',
+          Icons.admin_panel_settings_outlined,
+          AdminScreen(apiClient: widget.apiClient),
+        ),
     ];
   }
 
@@ -68,7 +112,13 @@ class _ShellScreenState extends State<ShellScreen> {
         selectedIndex: _index,
         onDestinationSelected: (index) {
           Navigator.pop(context);
-          setState(() => _index = index);
+          setState(() {
+            _index = index;
+            if (_pages[index].title == 'Nhà cung ứng') {
+              _supplierRefreshVersion++;
+            }
+            _pages = _buildPages();
+          });
         },
         children: [
           const Padding(
