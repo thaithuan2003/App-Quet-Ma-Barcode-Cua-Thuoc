@@ -24,12 +24,14 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   late final MedicineService _medicineService = MedicineService(
     widget.apiClient,
   );
+  final MobileScannerController _scannerController = MobileScannerController();
   final List<ScanResult> _results = [];
   final Set<String> _barcodes = {};
   final List<String> _interactionBarcodes = [];
   Timer? _scanTimeoutTimer;
   bool _busy = false;
   bool _waitingForConfirm = false;
+  bool _scannerPausedForDetail = false;
   bool _interactionMode = false;
   String? _message;
 
@@ -42,6 +44,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   @override
   void dispose() {
     _scanTimeoutTimer?.cancel();
+    unawaited(_scannerController.dispose());
     super.dispose();
   }
 
@@ -80,8 +83,11 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
 
   void _restartScanTimeout() {
     _scanTimeoutTimer?.cancel();
+    if (_scannerPausedForDetail) {
+      return;
+    }
     _scanTimeoutTimer = Timer(const Duration(seconds: 10), () async {
-      if (!mounted || _busy || _waitingForConfirm) {
+      if (!mounted || _busy || _waitingForConfirm || _scannerPausedForDetail) {
         return;
       }
       setState(() => _waitingForConfirm = true);
@@ -97,8 +103,33 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     });
   }
 
+  Future<void> _pauseScannerForDetail() async {
+    _scanTimeoutTimer?.cancel();
+    setState(() => _scannerPausedForDetail = true);
+    try {
+      await _scannerController.stop();
+    } catch (error) {
+      debugPrint('Khong the dung camera: $error');
+    }
+  }
+
+  Future<void> _resumeScannerAfterDetail() async {
+    if (!mounted) {
+      return;
+    }
+    try {
+      await _scannerController.start();
+    } catch (error) {
+      debugPrint('Khong the bat lai camera: $error');
+    }
+    if (mounted) {
+      setState(() => _scannerPausedForDetail = false);
+      _restartScanTimeout();
+    }
+  }
+
   Future<void> _handleBarcode(String? value) async {
-    if (_busy || _waitingForConfirm) {
+    if (_busy || _waitingForConfirm || _scannerPausedForDetail) {
       return;
     }
 
@@ -264,6 +295,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         AspectRatio(
           aspectRatio: 1.7,
           child: MobileScanner(
+            controller: _scannerController,
             onDetect: (capture) {
               final barcode = capture.barcodes.isEmpty
                   ? null
@@ -355,8 +387,12 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                             : const Icon(Icons.chevron_right),
                         onTap: medicine == null
                             ? null
-                            : () {
-                                Navigator.push(
+                            : () async {
+                                await _pauseScannerForDetail();
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => MedicineDetailScreen(
@@ -365,6 +401,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                                     ),
                                   ),
                                 );
+                                await _resumeScannerAfterDetail();
                               },
                       ),
                     );
