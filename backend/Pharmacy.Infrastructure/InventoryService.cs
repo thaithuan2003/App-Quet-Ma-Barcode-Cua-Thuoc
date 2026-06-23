@@ -60,7 +60,7 @@ public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts)
             UserId = userId,
             Type = InventoryTransactionType.Import,
             Quantity = request.Quantity,
-            Note = "Nhap lo moi"
+            Note = "Nhập lô mới"
         });
         await db.SaveChangesAsync(cancellationToken);
         await alerts.RefreshSystemAlertsAsync(cancellationToken);
@@ -165,7 +165,7 @@ public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts)
     public async Task<InventoryTransactionDto> AdjustAsync(InventoryAdjustmentRequest request, int userId, CancellationToken cancellationToken)
     {
         var item = await db.InventoryItems.FirstOrDefaultAsync(x => x.MedicineBatchId == request.MedicineBatchId, cancellationToken)
-            ?? throw new InvalidOperationException("Khong tim thay lo ton kho.");
+            ?? throw new InvalidOperationException("Không tìm thấy lô tồn kho.");
         var delta = request.NewQuantity - item.Quantity;
         return await ChangeQuantityAsync(request.MedicineBatchId, delta, InventoryTransactionType.Adjustment, request.Note, userId, cancellationToken);
     }
@@ -192,11 +192,11 @@ public sealed class InventoryService(PharmacyDbContext db, IAlertService alerts)
         var item = await db.InventoryItems
             .Include(x => x.MedicineBatch).ThenInclude(x => x.Medicine)
             .FirstOrDefaultAsync(x => x.MedicineBatchId == batchId, cancellationToken)
-            ?? throw new InvalidOperationException("Khong tim thay lo ton kho.");
+            ?? throw new InvalidOperationException("Không tìm thấy lô tồn kho.");
 
         if (item.Quantity + delta < 0)
         {
-            throw new InvalidOperationException("So luong ton kho khong du.");
+            throw new InvalidOperationException("Số lượng tồn kho không đủ.");
         }
 
         item.Quantity += delta;

@@ -15,10 +15,10 @@ public sealed class VerificationService(PharmacyDbContext db) : IVerificationSer
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var verified = batch is not null && batch.ExpiryDate >= today;
         var message = batch is null
-            ? "Khong tim thay ma vach/so lo trong CSDL. Can kiem tra nguon hang."
+            ? "Không tìm thấy mã vạch/số lô trong CSDL. Cần kiểm tra nguồn hàng."
             : batch.ExpiryDate < today
-                ? "Tim thay lo thuoc nhung da het han."
-                : "Ma vach va so lo khop voi du lieu noi bo.";
+                ? "Tìm thấy lô thuốc nhưng đã hết hạn."
+                : "Mã vạch và số lô khớp với dữ liệu nội bộ.";
 
         db.VerificationLogs.Add(new VerificationLog
         {
@@ -38,7 +38,7 @@ public sealed class VerificationService(PharmacyDbContext db) : IVerificationSer
                 MedicineBatchId = batch?.Id,
                 Type = AlertType.VerificationWarning,
                 Severity = AlertSeverity.Warning,
-                Title = "Canh bao xac thuc",
+                Title = "Cảnh báo xác thực",
                 Message = message
             });
         }

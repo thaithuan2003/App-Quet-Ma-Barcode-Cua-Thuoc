@@ -21,22 +21,22 @@ public sealed class AdminService(PharmacyDbContext db) : IAdminService
         var username = request.Username.Trim();
         if (username.Length < 3)
         {
-            throw new InvalidOperationException("Ten dang nhap phai co it nhat 3 ky tu.");
+            throw new InvalidOperationException("Tên đăng nhập phải có ít nhất 3 ký tự.");
         }
 
         if (request.Password.Length < 6)
         {
-            throw new InvalidOperationException("Mat khau phai co it nhat 6 ky tu.");
+            throw new InvalidOperationException("Mật khẩu phải có ít nhất 6 ký tự.");
         }
 
         if (await db.Users.AnyAsync(x => x.Username == username, cancellationToken))
         {
-            throw new InvalidOperationException("Ten dang nhap da ton tai.");
+            throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
         }
 
         if (string.IsNullOrWhiteSpace(request.FullName))
         {
-            throw new InvalidOperationException("Ho ten nhan vien khong duoc de trong.");
+            throw new InvalidOperationException("Họ tên nhân viên không được để trống.");
         }
 
         var staffRole = await db.Roles.FirstAsync(x => x.Name == UserRoleName.Staff, cancellationToken);
@@ -61,34 +61,34 @@ public sealed class AdminService(PharmacyDbContext db) : IAdminService
         var user = await db.Users
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
-            ?? throw new InvalidOperationException("Khong tim thay tai khoan.");
+            ?? throw new InvalidOperationException("Không tìm thấy tài khoản.");
 
         if (user.UserRoles.Any(x => x.Role.Name == UserRoleName.Admin))
         {
-            throw new InvalidOperationException("Khong sua tai khoan admin tai man hinh nhan vien.");
+            throw new InvalidOperationException("Không sửa tài khoản admin tại màn hình nhân viên.");
         }
 
         var username = request.Username.Trim();
         if (username.Length < 3)
         {
-            throw new InvalidOperationException("Ten dang nhap phai co it nhat 3 ky tu.");
+            throw new InvalidOperationException("Tên đăng nhập phải có ít nhất 3 ký tự.");
         }
 
         if (string.IsNullOrWhiteSpace(request.FullName))
         {
-            throw new InvalidOperationException("Ho ten nhan vien khong duoc de trong.");
+            throw new InvalidOperationException("Họ tên nhân viên không được để trống.");
         }
 
         if (await db.Users.AnyAsync(x => x.Id != userId && x.Username == username, cancellationToken))
         {
-            throw new InvalidOperationException("Ten dang nhap da ton tai.");
+            throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
         }
 
         if (!string.IsNullOrWhiteSpace(request.Password))
         {
             if (request.Password.Length < 6)
             {
-                throw new InvalidOperationException("Mat khau phai co it nhat 6 ky tu.");
+                throw new InvalidOperationException("Mật khẩu phải có ít nhất 6 ký tự.");
             }
 
             user.PasswordHash = PasswordHasher.Hash(request.Password);
@@ -107,11 +107,11 @@ public sealed class AdminService(PharmacyDbContext db) : IAdminService
         var user = await db.Users
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
-            ?? throw new InvalidOperationException("Khong tim thay tai khoan.");
+            ?? throw new InvalidOperationException("Không tìm thấy tài khoản.");
 
         if (user.Username == "admin" && !request.IsActive)
         {
-            throw new InvalidOperationException("Khong duoc khoa tai khoan admin mac dinh.");
+            throw new InvalidOperationException("Không được khóa tài khoản admin mặc định.");
         }
 
         user.IsActive = request.IsActive;
@@ -125,11 +125,11 @@ public sealed class AdminService(PharmacyDbContext db) : IAdminService
         var user = await db.Users
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
-            ?? throw new InvalidOperationException("Khong tim thay tai khoan.");
+            ?? throw new InvalidOperationException("Không tìm thấy tài khoản.");
 
         if (user.UserRoles.Any(x => x.Role.Name == UserRoleName.Admin))
         {
-            throw new InvalidOperationException("Khong duoc xoa tai khoan admin.");
+            throw new InvalidOperationException("Không được xóa tài khoản admin.");
         }
 
         var hasRelatedData =

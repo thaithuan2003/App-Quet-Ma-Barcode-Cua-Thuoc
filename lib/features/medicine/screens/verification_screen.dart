@@ -16,7 +16,9 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   final _barcodeController = TextEditingController(text: '8938505974190');
   final _batchController = TextEditingController(text: 'PCM-2026-01');
-  late final VerificationService _service = VerificationService(widget.apiClient);
+  late final VerificationService _service = VerificationService(
+    widget.apiClient,
+  );
   VerificationResult? _result;
   bool _loading = false;
 
@@ -33,10 +35,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _result = null;
     });
     try {
-      final result = await _service.verify(_barcodeController.text.trim(), _batchController.text.trim());
+      final result = await _service.verify(
+        _barcodeController.text.trim(),
+        _batchController.text.trim(),
+      );
       setState(() => _result = result);
     } on ApiException catch (error) {
-      setState(() => _result = VerificationResult(isVerified: false, severity: 'Warning', message: error.message));
+      setState(
+        () => _result = VerificationResult(
+          isVerified: false,
+          severity: 'Warning',
+          message: error.message,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -52,26 +63,36 @@ class _VerificationScreenState extends State<VerificationScreen> {
       children: [
         TextField(
           controller: _barcodeController,
-          decoration: const InputDecoration(labelText: 'Barcode', prefixIcon: Icon(Icons.qr_code)),
+          decoration: const InputDecoration(
+            labelText: 'Mã vạch',
+            prefixIcon: Icon(Icons.qr_code),
+          ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _batchController,
-          decoration: const InputDecoration(labelText: 'So lo', prefixIcon: Icon(Icons.numbers)),
+          decoration: const InputDecoration(
+            labelText: 'Số lô',
+            prefixIcon: Icon(Icons.numbers),
+          ),
         ),
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: _loading ? null : _verify,
           icon: const Icon(Icons.verified_user_outlined),
-          label: const Text('Kiem tra xac thuc'),
+          label: const Text('Kiểm tra xác thực'),
         ),
         if (result != null) ...[
           const SizedBox(height: 16),
           Card(
-            color: result.isVerified ? Colors.green.shade50 : Colors.orange.shade50,
+            color: result.isVerified
+                ? Colors.green.shade50
+                : Colors.orange.shade50,
             child: ListTile(
-              leading: Icon(result.isVerified ? Icons.verified : Icons.warning_amber),
-              title: Text(result.isVerified ? 'Hop le' : 'Can kiem tra lai'),
+              leading: Icon(
+                result.isVerified ? Icons.verified : Icons.warning_amber,
+              ),
+              title: Text(result.isVerified ? 'Hợp lệ' : 'Cần kiểm tra lại'),
               subtitle: Text(result.message),
             ),
           ),

@@ -125,7 +125,7 @@ public sealed class MedicineService(PharmacyDbContext db) : IMedicineService
         var missing = barcodes.Except(medicines.Select(x => x.Barcode)).ToList();
         var details = interactions
             .Select(x => $"{x.MedicineA.Name} + {x.MedicineB.Name}: {x.Description}")
-            .Concat(missing.Select(x => $"Khong tim thay barcode {x} de kiem tra tuong tac."))
+            .Concat(missing.Select(x => $"Không tìm thấy mã vạch {x} để kiểm tra tương tác."))
             .ToList();
 
         var severity = interactions.Any(x => x.Severity == AlertSeverity.Critical)
@@ -133,8 +133,8 @@ public sealed class MedicineService(PharmacyDbContext db) : IMedicineService
             : interactions.Any() || missing.Any() ? AlertSeverity.Warning : AlertSeverity.Info;
 
         var message = severity == AlertSeverity.Info
-            ? "Chua phat hien tuong tac trong du lieu hien co."
-            : "Can kiem tra lai truoc khi cap phat.";
+            ? "Chưa phát hiện tương tác trong dữ liệu hiện có."
+            : "Cần kiểm tra lại trước khi cấp phát.";
 
         return new InteractionResultDto(severity, message, details);
     }

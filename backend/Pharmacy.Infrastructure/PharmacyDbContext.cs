@@ -65,8 +65,8 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Manufacturer = "Demo Pharma",
                 DosageForm = "Tablet",
                 Strength = "500mg",
-                UsageInstruction = "Dung theo huong dan cua duoc si hoac bac si.",
-                WarningNote = "Than trong voi benh gan va qua lieu.",
+                UsageInstruction = "Dùng theo hướng dẫn của dược sĩ hoặc bác sĩ.",
+                WarningNote = "Thận trọng với bệnh gan và quá liều.",
                 SalePrice = 25000,
                 RequiresPrescription = false
             },
@@ -79,8 +79,8 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Manufacturer = "Demo Pharma",
                 DosageForm = "Tablet",
                 Strength = "200mg",
-                UsageInstruction = "Dung sau an, tranh dung khi co tien su loet da day.",
-                WarningNote = "Than trong voi benh da day, than va dung cung thuoc chong dong.",
+                UsageInstruction = "Dùng sau ăn, tránh dùng khi có tiền sử loét dạ dày.",
+                WarningNote = "Thận trọng với bệnh dạ dày, thận và dùng cùng thuốc chống đông.",
                 SalePrice = 30000,
                 RequiresPrescription = false
             },
@@ -93,8 +93,8 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 Manufacturer = "Demo Antibiotics",
                 DosageForm = "Capsule",
                 Strength = "500mg",
-                UsageInstruction = "Dung dung lieu va du lieu trinh.",
-                WarningNote = "Can hoi tien su di ung khang sinh beta-lactam.",
+                UsageInstruction = "Dùng đúng liều và đủ liệu trình.",
+                WarningNote = "Cần hỏi tiền sử dị ứng kháng sinh beta-lactam.",
                 SalePrice = 45000,
                 RequiresPrescription = true
             });
@@ -110,7 +110,7 @@ public sealed class PharmacyDbContext(DbContextOptions<PharmacyDbContext> option
                 MedicineAId = 1,
                 MedicineBId = 2,
                 Severity = AlertSeverity.Warning,
-                Description = "Can kiem tra tong lieu giam dau/ha sot va nguy co tac dung phu khi phoi hop."
+                Description = "Cần kiểm tra tổng liều giảm đau/hạ sốt và nguy cơ tác dụng phụ khi phối hợp."
             });
 
         modelBuilder.Entity<MedicineBatch>().HasData(

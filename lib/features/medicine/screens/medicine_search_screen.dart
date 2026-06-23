@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
@@ -56,7 +56,7 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
               ),
               const SizedBox(width: 8),
               IconButton.filled(
-                tooltip: 'Tim',
+                tooltip: 'Tìm',
                 onPressed: _search,
                 icon: const Icon(Icons.search),
               ),
@@ -73,13 +73,17 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
               if (snapshot.hasError) {
                 final error = snapshot.error;
                 return AppError(
-                  message: error is ApiException ? error.message : 'Không tải được danh sách thuốc.',
+                  message: error is ApiException
+                      ? error.message
+                      : 'Không tải được danh sách thuốc.',
                   onRetry: _search,
                 );
               }
               final items = snapshot.data ?? [];
               if (items.isEmpty) {
-                return const Center(child: Text('Không tìm thấy thuốc phù hợp.'));
+                return const Center(
+                  child: Text('Không tìm thấy thuốc phù hợp.'),
+                );
               }
               return ListView.builder(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -89,13 +93,18 @@ class _MedicineSearchScreenState extends State<MedicineSearchScreen> {
                   return Card(
                     child: ListTile(
                       title: Text(item.name),
-                      subtitle: Text('${item.barcode} - Ton: ${item.totalQuantity}'),
+                      subtitle: Text(
+                        '${item.barcode} - Tồn: ${item.totalQuantity}',
+                      ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => MedicineDetailScreen(medicine: item, service: _service),
+                            builder: (_) => MedicineDetailScreen(
+                              medicine: item,
+                              service: _service,
+                            ),
                           ),
                         );
                       },

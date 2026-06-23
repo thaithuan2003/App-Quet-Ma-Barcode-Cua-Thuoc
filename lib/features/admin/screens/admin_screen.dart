@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_exception.dart';
@@ -30,7 +30,9 @@ class _AdminScreenState extends State<AdminScreen> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _showErrorDialog(String message) async {
@@ -41,12 +43,12 @@ class _AdminScreenState extends State<AdminScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Thong bao loi'),
+          title: const Text('Thông báo lỗi'),
           content: Text(message),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Dong'),
+              child: const Text('Đóng'),
             ),
           ],
         );
@@ -63,28 +65,37 @@ class _AdminScreenState extends State<AdminScreen> {
       builder: (context) {
         return _StaffFormSheet(
           user: user,
-          onSave: ({required fullName, required username, required password}) async {
-            if (user == null) {
-              await _service.createStaff(
-                fullName: fullName,
-                username: username,
-                password: password ?? '',
-              );
-            } else {
-              await _service.updateStaff(
-                userId: user.id,
-                fullName: fullName,
-                username: username,
-                password: password,
-              );
-            }
-          },
+          onSave:
+              ({
+                required fullName,
+                required username,
+                required password,
+              }) async {
+                if (user == null) {
+                  await _service.createStaff(
+                    fullName: fullName,
+                    username: username,
+                    password: password ?? '',
+                  );
+                } else {
+                  await _service.updateStaff(
+                    userId: user.id,
+                    fullName: fullName,
+                    username: username,
+                    password: password,
+                  );
+                }
+              },
         );
       },
     );
     if (saved == true) {
       _reload();
-      _showSuccess(user == null ? 'Da them nhan vien thanh cong.' : 'Da cap nhat nhan vien thanh cong.');
+      _showSuccess(
+        user == null
+            ? 'Đã thêm nhân viên thành công.'
+            : 'Đã cập nhật nhân viên thành công.',
+      );
     }
   }
 
@@ -93,11 +104,17 @@ class _AdminScreenState extends State<AdminScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Xoa nhan vien'),
-          content: Text('Ban muon xoa hoac khoa tai khoan ${user.fullName}?'),
+          title: const Text('Xóa nhân viên'),
+          content: Text('Bạn muốn xóa hoặc khóa tài khoản ${user.fullName}?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Huy')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Xoa')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Xóa'),
+            ),
           ],
         );
       },
@@ -110,7 +127,7 @@ class _AdminScreenState extends State<AdminScreen> {
     try {
       await _service.deleteStaff(user.id);
       _reload();
-      _showSuccess('Da xoa nhan vien thanh cong.');
+      _showSuccess('Đã xóa nhân viên thành công.');
     } on ApiException catch (error) {
       await _showErrorDialog(error.message);
     }
@@ -183,7 +200,12 @@ class _UsersTabState extends State<_UsersTab> {
         }
         if (snapshot.hasError) {
           final error = snapshot.error;
-          return AppError(message: error is ApiException ? error.message : 'Chỉ admin mới được truy cập quản trị.', onRetry: widget.onRetry);
+          return AppError(
+            message: error is ApiException
+                ? error.message
+                : 'Chỉ admin mới được truy cập quản trị.',
+            onRetry: widget.onRetry,
+          );
         }
         final users = snapshot.data ?? [];
         final staffUsers = users.where((user) {
@@ -194,12 +216,18 @@ class _UsersTabState extends State<_UsersTab> {
           if (normalizedQuery.isEmpty) {
             return true;
           }
-          return user.fullName.toLowerCase().contains(normalizedQuery)
-              || user.username.toLowerCase().contains(normalizedQuery);
+          return user.fullName.toLowerCase().contains(normalizedQuery) ||
+              user.username.toLowerCase().contains(normalizedQuery);
         }).toList();
-        final totalStaffCount = users.where((user) => user.roles.contains('Staff')).length;
-        final allStaffUsers = users.where((user) => user.roles.contains('Staff')).toList();
-        final activeStaffCount = allStaffUsers.where((user) => user.isActive).length;
+        final totalStaffCount = users
+            .where((user) => user.roles.contains('Staff'))
+            .length;
+        final allStaffUsers = users
+            .where((user) => user.roles.contains('Staff'))
+            .toList();
+        final activeStaffCount = allStaffUsers
+            .where((user) => user.isActive)
+            .length;
         return Column(
           children: [
             Padding(
@@ -213,12 +241,18 @@ class _UsersTabState extends State<_UsersTab> {
                           child: ListTile(
                             leading: const Icon(Icons.groups_outlined),
                             title: Text('$totalStaffCount'),
-                            subtitle: Text('Nhân viên ($activeStaffCount đang hoạt động)'),
+                            subtitle: Text(
+                              'Nhân viên ($activeStaffCount đang hoạt động)',
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      FilledButton.icon(onPressed: widget.onCreate, icon: const Icon(Icons.person_add_alt), label: const Text('Tạo nhân viên')),
+                      FilledButton.icon(
+                        onPressed: widget.onCreate,
+                        icon: const Icon(Icons.person_add_alt),
+                        label: const Text('Tạo nhân viên'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -248,7 +282,9 @@ class _UsersTabState extends State<_UsersTab> {
             ),
             Expanded(
               child: staffUsers.isEmpty
-                  ? const Center(child: Text('Không tìm thấy nhân viên phù hợp.'))
+                  ? const Center(
+                      child: Text('Không tìm thấy nhân viên phù hợp.'),
+                    )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                       itemCount: staffUsers.length,
@@ -261,7 +297,9 @@ class _UsersTabState extends State<_UsersTab> {
                               onChanged: (_) => widget.onToggle(user),
                             ),
                             title: Text(user.fullName),
-                            subtitle: Text('${user.username} - ${user.isActive ? 'Đang hoạt động' : 'Đã khóa'}'),
+                            subtitle: Text(
+                              '${user.username} - ${user.isActive ? 'Đang hoạt động' : 'Đã khóa'}',
+                            ),
                             trailing: Wrap(
                               spacing: 4,
                               children: [
@@ -290,17 +328,15 @@ class _UsersTabState extends State<_UsersTab> {
 }
 
 class _StaffFormSheet extends StatefulWidget {
-  const _StaffFormSheet({
-    required this.user,
-    required this.onSave,
-  });
+  const _StaffFormSheet({required this.user, required this.onSave});
 
   final AdminUser? user;
   final Future<void> Function({
     required String fullName,
     required String username,
     required String? password,
-  }) onSave;
+  })
+  onSave;
 
   @override
   State<_StaffFormSheet> createState() => _StaffFormSheetState();
@@ -315,9 +351,15 @@ class _StaffFormSheetState extends State<_StaffFormSheet> {
   @override
   void initState() {
     super.initState();
-    _fullNameController = TextEditingController(text: widget.user?.fullName ?? '');
-    _usernameController = TextEditingController(text: widget.user?.username ?? '');
-    _passwordController = TextEditingController(text: widget.user == null ? 'staff123' : '');
+    _fullNameController = TextEditingController(
+      text: widget.user?.fullName ?? '',
+    );
+    _usernameController = TextEditingController(
+      text: widget.user?.username ?? '',
+    );
+    _passwordController = TextEditingController(
+      text: widget.user == null ? 'staff123' : '',
+    );
   }
 
   @override
@@ -359,12 +401,12 @@ class _StaffFormSheetState extends State<_StaffFormSheet> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Thong bao loi'),
+          title: const Text('Thông báo lỗi'),
           content: Text(message),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Dong'),
+              child: const Text('Đóng'),
             ),
           ],
         );
@@ -375,16 +417,23 @@ class _StaffFormSheetState extends State<_StaffFormSheet> {
   @override
   Widget build(BuildContext context) {
     return _FormSheetFrame(
-      title: widget.user == null ? 'Tao tai khoan nhan vien' : 'Sua thong tin nhan vien',
+      title: widget.user == null
+          ? 'Tạo tài khoản nhân viên'
+          : 'Sửa thông tin nhân viên',
       saving: _saving,
       onSave: _save,
       children: [
         AppTextField(controller: _fullNameController, labelText: 'Họ tên'),
-        AppTextField(controller: _usernameController, labelText: 'Tên đăng nhập'),
+        AppTextField(
+          controller: _usernameController,
+          labelText: 'Tên đăng nhập',
+        ),
         AppTextField(
           controller: _passwordController,
           obscureText: true,
-          labelText: widget.user == null ? 'Mật khẩu' : 'Mật khẩu mới (bỏ trống nếu không đổi)',
+          labelText: widget.user == null
+              ? 'Mật khẩu'
+              : 'Mật khẩu mới (bỏ trống nếu không đổi)',
         ),
       ],
     );
@@ -408,17 +457,29 @@ class _FormSheetFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                   IconButton(
-                    tooltip: 'Thoat',
-                    onPressed: saving ? null : () => Navigator.pop(context, false),
+                    tooltip: 'Thoát',
+                    onPressed: saving
+                        ? null
+                        : () => Navigator.pop(context, false),
                     icon: const Icon(Icons.close),
                   ),
                 ],
@@ -432,9 +493,11 @@ class _FormSheetFrame extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: saving ? null : () => Navigator.pop(context, false),
+                      onPressed: saving
+                          ? null
+                          : () => Navigator.pop(context, false),
                       icon: const Icon(Icons.close),
-                      label: const Text('Thoat'),
+                      label: const Text('Thoát'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -442,9 +505,13 @@ class _FormSheetFrame extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: saving ? null : () => onSave(),
                       icon: saving
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Icon(Icons.save_outlined),
-                      label: const Text('Luu'),
+                      label: const Text('Lưu'),
                     ),
                   ),
                 ],

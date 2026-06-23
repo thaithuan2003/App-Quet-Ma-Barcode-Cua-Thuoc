@@ -13,7 +13,7 @@ public sealed class MedicinesController(IMedicineService medicines) : Controller
     public async Task<ActionResult<MedicineDto>> GetByBarcode(string barcode, CancellationToken cancellationToken)
     {
         var medicine = await medicines.GetByBarcodeAsync(barcode, cancellationToken);
-        return medicine is null ? NotFound(new { message = "Khong tim thay thuoc." }) : Ok(medicine);
+        return medicine is null ? NotFound(new { message = "Không tìm thấy thuốc." }) : Ok(medicine);
     }
 
     [HttpGet("search")]
