@@ -77,11 +77,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               address: address,
             );
           }
+          await _reload();
         },
       ),
     );
     if (saved == true) {
-      await _reload();
       await _showMessage(
         'Thành công',
         supplier == null
