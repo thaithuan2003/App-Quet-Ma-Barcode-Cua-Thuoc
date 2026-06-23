@@ -66,7 +66,7 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   Future<List<InventoryTransaction>> _loadImportHistory() async {
     final transactions = await _service.transactions();
-    return transactions.where((item) => item.type.contains('Import')).toList();
+    return transactions.where((item) => item.type == 'Import').toList();
   }
 
   void _reload() {
@@ -79,23 +79,6 @@ class _InventoryScreenState extends State<InventoryScreen>
   void _search() {
     _query = _searchController.text.trim();
     _reload();
-  }
-
-  Future<void> _showError(String message) async {
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Thông báo lỗi'),
-        content: Text(message),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _showSuccess(String message) async {
@@ -158,34 +141,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
   }
 
-  Future<void> _deleteBatch(Batch batch) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xóa lô thuốc'),
-        content: Text('Bạn muốn xóa lô ${batch.batchNumber}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa'),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-    try {
-      await _service.deleteBatch(batch.id);
-      _reload();
-      await _showSuccess('Đã xóa lô thuốc thành công.');
-    } on ApiException catch (error) {
-      await _showError(error.message);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -237,7 +192,6 @@ class _InventoryScreenState extends State<InventoryScreen>
                 onRetry: _reload,
                 onOpenDetails: _openBatchDetails,
                 onEdit: _openBatchForm,
-                onDelete: _deleteBatch,
               ),
               _ImportHistoryList(future: _transactionsFuture, onRetry: _reload),
             ],
@@ -263,7 +217,6 @@ class _BatchList extends StatelessWidget {
     required this.onRetry,
     required this.onOpenDetails,
     required this.onEdit,
-    required this.onDelete,
   });
 
   final Future<List<Batch>> future;
@@ -271,7 +224,6 @@ class _BatchList extends StatelessWidget {
   final VoidCallback onRetry;
   final ValueChanged<Batch> onOpenDetails;
   final ValueChanged<Batch> onEdit;
-  final ValueChanged<Batch> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -312,24 +264,10 @@ class _BatchList extends StatelessWidget {
                   isThreeLine: true,
                   onTap: () => onOpenDetails(batch),
                   trailing: isAdmin
-                      ? PopupMenuButton<_BatchAction>(
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                              value: _BatchAction.edit,
-                              child: Text('Sửa lô'),
-                            ),
-                            PopupMenuItem(
-                              value: _BatchAction.delete,
-                              child: Text('Xóa lô'),
-                            ),
-                          ],
-                          onSelected: (action) {
-                            if (action == _BatchAction.edit) {
-                              onEdit(batch);
-                            } else {
-                              onDelete(batch);
-                            }
-                          },
+                      ? IconButton(
+                          tooltip: 'Sửa lô',
+                          onPressed: () => onEdit(batch),
+                          icon: const Icon(Icons.edit_outlined),
                         )
                       : null,
                 ),
@@ -782,4 +720,3 @@ class _BatchFormSheetState extends State<_BatchFormSheet> {
   }
 }
 
-enum _BatchAction { edit, delete }

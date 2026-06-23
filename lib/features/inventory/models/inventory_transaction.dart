@@ -18,14 +18,25 @@ class InventoryTransaction {
   final String createdAt;
 
   factory InventoryTransaction.fromJson(Map<String, dynamic> json) {
+    final rawType = json['type'];
     return InventoryTransaction(
       id: json['id'] as int,
       medicineName: json['medicineName'] as String,
       batchNumber: json['batchNumber'] as String,
-      type: json['type'].toString(),
+      type: _parseType(rawType),
       quantity: json['quantity'] as int,
       note: json['note'] as String,
       createdAt: json['createdAt'] as String,
     );
+  }
+
+  static String _parseType(Object? value) {
+    return switch (value) {
+      0 => 'Import',
+      1 => 'Export',
+      2 => 'Sale',
+      3 => 'Adjustment',
+      _ => value?.toString() ?? '',
+    };
   }
 }
